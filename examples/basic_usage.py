@@ -41,7 +41,7 @@ def main_with_dataclass():
     # Print configuration details
     print(f"Model Name: {config.model_config.model_name}")
     print(
-        f"API Key: {'*' * len(config.model_config.api_key) if config.model_config.api_key else 'Not set'}"
+        f"API Key: {'*' * len(config.model_config.api_key) if config.model_config.api_key else 'Not set'}"  # noqa
     )
     print(f"API Base: {config.model_config.api_base}")
     print(f"Prompt Template: {config.prompt_template}")
@@ -69,7 +69,7 @@ def main_with_dataclass():
 try:
     from pydantic import BaseModel, Field
 
-    # Note: In Pydantic, naming a field "model_config" conflicts with Pydantic's own configuration.
+    # Note: In Pydantic, naming a field "model_config" conflicts with Pydantic's own configuration. #noqa
     # Instead, use a different name like "llm_config" or "ai_model"
     class LLMConfig(BaseModel):
         model_name: str = Field(default="gpt-4", description="Model name")
@@ -100,7 +100,7 @@ try:
         # Print configuration details
         print(f"Model Name: {config.llm_config.model_name}")
         print(
-            f"API Key: {'*' * len(config.llm_config.api_key) if config.llm_config.api_key else 'Not set'}"
+            f"API Key: {'*' * len(config.llm_config.api_key) if config.llm_config.api_key else 'Not set'}"  # noqa
         )
         print(f"API Base: {config.llm_config.api_base}")
         print(f"Prompt Template: {config.prompt_template}")

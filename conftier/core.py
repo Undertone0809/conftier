@@ -42,10 +42,11 @@ SchemaType = Literal[SCHEMA_TYPE_PYDANTIC, SCHEMA_TYPE_DATACLASS, SCHEMA_TYPE_DI
 
 class ConfigModel:
     """
-    A unified configuration model that wraps Pydantic models, dataclasses, and dictionaries.
+    A unified configuration model that wraps Pydantic models, dataclasses, and
+    dictionaries.
 
-    This class provides a consistent interface for different types of configuration models,
-    handling validation, serialization, and nested structure management.
+    This class provides a consistent interface for different types of configuration
+    models, handling validation, serialization, and nested structure management.
     """
 
     def __init__(self, schema_type: SchemaType, model_instance: Any):
@@ -113,8 +114,8 @@ class ConfigModel:
     def _prepare_dataclass_kwargs(
         dataclass_type: Type[Any], data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
-        Prepare kwargs for dataclass initialization with proper handling of nested dataclasses
+        """Prepare kwargs for dataclass initialization with proper handling of nested
+        dataclasses.
 
         Args:
             dataclass_type: Target dataclass type
@@ -267,7 +268,8 @@ class ConfigModel:
 
 class ConfigManager(Generic[T]):
     """
-    Core configuration manager that handles loading, merging, and accessing configurations.
+    Core configuration manager that handles loading, merging, and accessing
+    configurations.
     """
 
     def __init__(

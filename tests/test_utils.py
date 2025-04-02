@@ -33,13 +33,13 @@ class TestUtilityFunctions:
             config_name = "test_conftier_framework"
             config_path = get_user_config_path(config_name)
 
-            # Compare only the filename and parent directory name to avoid path format issues
+            # Compare only the filename and parent directory name to avoid path format issues #noqa
             assert config_path.name == "config.yaml"
             # Directory name might vary based on implementation (with or without dot)
             assert config_name in str(config_path)
 
             # Different implementations may store the config in different locations
-            # Skip the temp_dir check - actual implementation may use real user directories
+            # Skip the temp_dir check - actual implementation may use real user directories #noqa
 
             # Verify with a different framework name
             another_framework = "another_framework"

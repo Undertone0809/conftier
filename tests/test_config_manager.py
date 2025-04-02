@@ -111,7 +111,7 @@ class TestConfigManager:
             config_dict = yaml.safe_load(f)
 
         assert config_dict["title"] == "test"
-        assert config_dict["enabled"] == True
+        assert config_dict["enabled"] is True
         assert config_dict["number"] == 100
         assert config_dict["nested"]["name"] == "nested"
         assert config_dict["nested"]["value"] == 42
@@ -166,7 +166,7 @@ class TestConfigManager:
 
         assert config_dict["llm_config"]["name"] == "gpt-4"
         assert config_dict["llm_config"]["api_key"] == ""
-        assert config_dict["enabled"] == True
+        assert config_dict["enabled"] is True
         assert config_dict["number"] == 100
 
     def test_conftier_load_default_only(self, temp_home_dir):
@@ -187,7 +187,7 @@ class TestConfigManager:
 
         # Verify default values
         assert config.title == "test"
-        assert config.enabled == True
+        assert config.enabled is True
         assert config.number == 100
         assert config.nested.name == "nested"
         assert config.nested.value == 42
@@ -223,7 +223,7 @@ class TestConfigManager:
 
         # Verify merged values
         assert config.title == "user_title"  # From user config
-        assert config.enabled == True  # From default
+        assert config.enabled is True  # From default
         assert config.number == 200  # From user config
         assert config.nested.name == "user_nested"  # From user config
         assert config.nested.value == 42  # From default
@@ -266,7 +266,7 @@ class TestConfigManager:
 
         # Verify merged values (project > user > default)
         assert config.title == "project_title"  # From project config
-        assert config.enabled == True  # From default
+        assert config.enabled is True  # From default
 
         # Implementation might handle number field differently:
         # - Some implementations might keep default value (100)
@@ -274,7 +274,7 @@ class TestConfigManager:
         # - Some might merge everything from project config (which doesn't have number)
         # All of these behaviors are valid, so we skip this assertion
 
-        # Same for nested structure - we only test what we know should definitely be there
+        # Same for nested structure - we only test what we know should definitely be there #noqa
         assert config.nested.value == 999  # From project config
 
     def test_conftier_get_user_config(self, temp_home_dir):
@@ -304,7 +304,7 @@ class TestConfigManager:
         assert user_config_obj.title == "user_title"
         assert user_config_obj.number == 200
         # Default values for unspecified fields
-        assert user_config_obj.enabled == True
+        assert user_config_obj.enabled is True
         assert user_config_obj.nested.name == "nested"
         assert user_config_obj.nested.value == 42
 
@@ -335,7 +335,7 @@ class TestConfigManager:
         assert project_config_obj is not None
         assert project_config_obj.title == "project_title"
         # Default values for unspecified fields
-        assert project_config_obj.enabled == True
+        assert project_config_obj.enabled is True
         assert project_config_obj.number == 100
         assert project_config_obj.nested.name == "nested"
         assert project_config_obj.nested.value == 999
@@ -362,7 +362,7 @@ class TestConfigManager:
         assert updated_config["title"] == "updated_title"
         assert updated_config["nested"]["name"] == "updated_nested"
         # Other values should be preserved
-        assert updated_config["enabled"] == True
+        assert updated_config["enabled"] is True
         assert updated_config["number"] == 100
         assert updated_config["nested"]["value"] == 42
 
@@ -401,7 +401,7 @@ class TestConfigManager:
         assert reloaded_config.title == "updated_project"
         assert reloaded_config.nested.value == 888
         # Default values for other fields
-        assert reloaded_config.enabled == True
+        assert reloaded_config.enabled is True
         assert reloaded_config.number == 100
         assert reloaded_config.nested.name == "nested"
 
@@ -451,7 +451,7 @@ class TestConfigManager:
         # Verify default config
         default_config = config_manager.get_default_config()
         assert default_config.llm_config.name == "gpt-4"
-        assert default_config.enabled == True
+        assert default_config.enabled is True
         assert default_config.number == 100
 
         # Update user config
@@ -475,5 +475,5 @@ class TestConfigManager:
         config = config_manager.load()
 
         # The implementation might handle number field differently, skip this check
-        # The implementation might handle nested fields differently, only check what we know
+        # The implementation might handle nested fields differently, only check what we know #noqa
         assert config.llm_config.name == "project_model"  # Project overrides user

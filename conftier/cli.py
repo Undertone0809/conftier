@@ -125,7 +125,7 @@ def set_config(config_name: str, key: str, value: str, project: bool = False):
                 parsed_value = float(value)
             except ValueError:
                 parsed_value = value
-    except:
+    except Exception:
         parsed_value = value
 
     current[key_parts[-1]] = parsed_value

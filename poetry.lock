@@ -643,7 +643,19 @@ dev = ["autoflake (>=1.3.1,<2.0.0)", "flake8 (>=3.8.3,<4.0.0)", "pre-commit (>=2
 doc = ["mdx-include (>=1.4.1,<2.0.0)", "mkdocs (>=1.1.2,<2.0.0)", "mkdocs-material (>=8.1.4,<9.0.0)"]
 test = ["black (>=22.3.0,<23.0.0)", "coverage (>=5.2,<6.0)", "isort (>=5.0.6,<6.0.0)", "mypy (==0.910)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (>=2.10.0,<3.0.0)", "pytest-sugar (>=0.9.4,<0.10.0)", "pytest-xdist (>=1.32.0,<2.0.0)", "shellingham (>=1.3.0,<2.0.0)"]
 
+[[package]]
+name = "zeeland"
+version = "0.3.0"
+description = "zeeland frameworks core infra"
+optional = false
+python-versions = "<4.0,>=3.8"
+groups = ["main"]
+files = [
+    {file = "zeeland-0.3.0-py3-none-any.whl", hash = "sha256:32c4e5b0d2a088f1ef7845d986bf46074c5e67aab214e6c22cd812e91eb61d11"},
+    {file = "zeeland-0.3.0.tar.gz", hash = "sha256:0305a57caf61080de47b701eadf6eb6dd6f1175f394c8af422ed8040bee4930b"},
+]
+
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9,<4.0"
-content-hash = "fa541c95a03148e659e615519bdfc5ae66ad706bb516115684333a1d9d87c70a"
+content-hash = "02e759ee420507d0e8fd92d9f52061dc5d5776f1ae144dc901fb0259c6ca8423"

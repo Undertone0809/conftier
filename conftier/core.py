@@ -291,8 +291,6 @@ class ConfigManager(Generic[T]):
         self.config_schema: Type[T] = config_schema
         self.version: str = version
         self.auto_create: bool = auto_create
-
-        # Determine schema type
         self.schema_type: SchemaType
 
         if (

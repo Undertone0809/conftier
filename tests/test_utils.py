@@ -30,13 +30,13 @@ class TestUtilityFunctions:
                 monkeypatch.setenv("HOME", temp_dir)
 
             # Test with a framework name
-            framework_name = "test_conftier_framework"
-            config_path = get_user_config_path(framework_name)
+            config_name = "test_conftier_framework"
+            config_path = get_user_config_path(config_name)
 
             # Compare only the filename and parent directory name to avoid path format issues
             assert config_path.name == "config.yaml"
             # Directory name might vary based on implementation (with or without dot)
-            assert framework_name in str(config_path)
+            assert config_name in str(config_path)
 
             # Different implementations may store the config in different locations
             # Skip the temp_dir check - actual implementation may use real user directories
@@ -100,13 +100,13 @@ class TestUtilityFunctions:
                 os.chdir(temp_path)
 
                 # Test with a framework name
-                framework_name = "test_conftier_framework"
-                config_path = get_project_config_path(framework_name)
+                config_name = "test_conftier_framework"
+                config_path = get_project_config_path(config_name)
 
                 # Just check if result is a path with the right structure
                 if config_path is not None:
                     assert config_path.name == "config.yaml"
-                    assert framework_name in str(config_path)
+                    assert config_name in str(config_path)
                 # Note: Implementation might return None if project config
                 # detection works differently, which is also valid
             finally:

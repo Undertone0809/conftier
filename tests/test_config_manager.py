@@ -92,13 +92,13 @@ class TestConfigManager:
     def test_conftier_init_with_dataclass(self, temp_home_dir):
         """Test initializing ConfigManager with a dataclass schema"""
         config_manager = ConfigManager[TestConfig](
-            framework_name="test_framework",
+            config_name="test_framework",
             config_schema=TestConfig,
             version="1.0.0",
             auto_create=True,
         )
 
-        assert config_manager.framework_name == "test_framework"
+        assert config_manager.config_name == "test_framework"
         assert config_manager.schema_type == "dataclass"
         assert config_manager.version == "1.0.0"
 
@@ -122,13 +122,13 @@ class TestConfigManager:
         test_dict = {"name": "test_dict", "value": 123, "nested": {"key": "value"}}
 
         config_manager = ConfigManager[Dict](
-            framework_name="test_dict_framework",
+            config_name="test_dict_framework",
             config_schema=test_dict,
             version="1.0.0",
             auto_create=True,
         )
 
-        assert config_manager.framework_name == "test_dict_framework"
+        assert config_manager.config_name == "test_dict_framework"
         assert config_manager.schema_type == "dict"
 
         # Check if user config was created
@@ -146,13 +146,13 @@ class TestConfigManager:
     def test_conftier_init_with_pydantic(self, temp_home_dir):
         """Test initializing ConfigManager with a Pydantic schema"""
         config_manager = ConfigManager[PydanticTestConfig](
-            framework_name="test_pydantic",
+            config_name="test_pydantic",
             config_schema=PydanticTestConfig,
             version="1.0.0",
             auto_create=True,
         )
 
-        assert config_manager.framework_name == "test_pydantic"
+        assert config_manager.config_name == "test_pydantic"
         assert config_manager.schema_type == "pydantic"
         assert config_manager.version == "1.0.0"
 
@@ -172,14 +172,14 @@ class TestConfigManager:
     def test_conftier_load_default_only(self, temp_home_dir):
         """Test loading configuration with only default values"""
         # Delete any existing config files
-        framework_name = "test_conftier_load_default"
-        user_config_path = get_user_config_path(framework_name)
+        config_name = "test_conftier_load_default"
+        user_config_path = get_user_config_path(config_name)
         if user_config_path.exists():
             os.remove(user_config_path)
 
         # Initialize with auto_create=False
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name, config_schema=TestConfig, auto_create=False
         )
 
         # Load configuration
@@ -197,8 +197,8 @@ class TestConfigManager:
 
     def test_conftier_load_with_user_config(self, temp_home_dir):
         """Test loading configuration with user config"""
-        framework_name = "test_conftier_load_user"
-        user_config_path = get_user_config_path(framework_name)
+        config_name = "test_conftier_load_user"
+        user_config_path = get_user_config_path(config_name)
 
         # Ensure directory exists
         os.makedirs(user_config_path.parent, exist_ok=True)
@@ -215,7 +215,7 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name, config_schema=TestConfig, auto_create=False
         )
 
         # Load configuration
@@ -230,10 +230,10 @@ class TestConfigManager:
 
     def test_conftier_load_with_all_configs(self, temp_home_dir, temp_project_dir):
         """Test loading configuration with default, user, and project configs"""
-        framework_name = "test_conftier_load_all"
+        config_name = "test_conftier_load_all"
 
         # Create user config
-        user_config_path = get_user_config_path(framework_name)
+        user_config_path = get_user_config_path(config_name)
         os.makedirs(user_config_path.parent, exist_ok=True)
 
         user_config = {
@@ -247,7 +247,7 @@ class TestConfigManager:
 
         # Create project config
         project_dir = Path(temp_project_dir)
-        project_config_dir = project_dir / f".{framework_name}"
+        project_config_dir = project_dir / f".{config_name}"
         os.makedirs(project_config_dir, exist_ok=True)
 
         project_config_path = project_config_dir / "config.yaml"
@@ -258,7 +258,7 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name, config_schema=TestConfig, auto_create=False
         )
 
         # Load configuration
@@ -279,8 +279,8 @@ class TestConfigManager:
 
     def test_conftier_get_user_config(self, temp_home_dir):
         """Test getting user config"""
-        framework_name = "test_conftier_get_user"
-        user_config_path = get_user_config_path(framework_name)
+        config_name = "test_conftier_get_user"
+        user_config_path = get_user_config_path(config_name)
 
         # Ensure directory exists
         os.makedirs(user_config_path.parent, exist_ok=True)
@@ -293,7 +293,7 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name, config_schema=TestConfig, auto_create=False
         )
 
         # Get user config
@@ -310,11 +310,11 @@ class TestConfigManager:
 
     def test_conftier_get_project_config(self, temp_home_dir, temp_project_dir):
         """Test getting project config"""
-        framework_name = "test_conftier_get_project"
+        config_name = "test_conftier_get_project"
 
         # Create project config
         project_dir = Path(temp_project_dir)
-        project_config_dir = project_dir / f".{framework_name}"
+        project_config_dir = project_dir / f".{config_name}"
         os.makedirs(project_config_dir, exist_ok=True)
 
         project_config_path = project_config_dir / "config.yaml"
@@ -325,7 +325,7 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name, config_schema=TestConfig, auto_create=False
         )
 
         # Get project config
@@ -342,11 +342,11 @@ class TestConfigManager:
 
     def test_conftier_update_user_config(self, temp_home_dir):
         """Test updating user config"""
-        framework_name = "test_conftier_update_user"
+        config_name = "test_conftier_update_user"
 
         # Initialize manager with auto_create
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name, config_schema=TestConfig, auto_create=True
         )
 
         # Update user config
@@ -355,7 +355,7 @@ class TestConfigManager:
         )
 
         # Verify file was updated
-        user_config_path = get_user_config_path(framework_name)
+        user_config_path = get_user_config_path(config_name)
         with open(user_config_path, "r") as f:
             updated_config = yaml.safe_load(f)
 
@@ -373,11 +373,11 @@ class TestConfigManager:
 
     def test_conftier_update_project_config(self, temp_home_dir, temp_project_dir):
         """Test updating project config"""
-        framework_name = "test_conftier_update_project"
+        config_name = "test_conftier_update_project"
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name, config_schema=TestConfig, auto_create=True
         )
 
         # Update project config
@@ -386,7 +386,7 @@ class TestConfigManager:
         )
 
         # Verify file was created and updated
-        project_config_path = get_project_config_path(framework_name)
+        project_config_path = get_project_config_path(config_name)
         assert project_config_path is not None
         assert project_config_path.exists()
 
@@ -407,11 +407,11 @@ class TestConfigManager:
 
     def test_conftier_create_project_template(self, temp_home_dir, temp_project_dir):
         """Test creating project template"""
-        framework_name = "test_conftier_template"
+        config_name = "test_conftier_template"
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            framework_name=framework_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name, config_schema=TestConfig, auto_create=True
         )
 
         # First set up a project config with known values
@@ -439,11 +439,11 @@ class TestConfigManager:
     @pytest.mark.skipif(not PYDANTIC_AVAILABLE, reason="Pydantic not installed")
     def test_conftier_pydantic_full_workflow(self, temp_home_dir, temp_project_dir):
         """Test a full workflow with Pydantic models"""
-        framework_name = "test_conftier_pydantic_workflow"
+        config_name = "test_conftier_pydantic_workflow"
 
         # Initialize manager
         config_manager = ConfigManager[PydanticTestConfig](
-            framework_name=framework_name,
+            config_name=config_name,
             config_schema=PydanticTestConfig,
             auto_create=True,
         )

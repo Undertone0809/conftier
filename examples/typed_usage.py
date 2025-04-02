@@ -29,7 +29,7 @@ def main_with_dataclass():
 
     # Use ConfigManager with type parameter
     config_manager = ConfigManager[ExampleConfig](
-        framework_name="example_typed",
+        config_name="example_typed",
         config_schema=ExampleConfig,
         version="1.0.0",
         auto_create=True,
@@ -77,7 +77,7 @@ try:
 
         # Initialize with type annotation - directly use the generic ConfigManager
         config_manager = ConfigManager[PydanticExampleConfig](
-            framework_name="example_pydantic_typed",
+            config_name="example_pydantic_typed",
             config_schema=PydanticExampleConfig,
             version="1.0.0",
             auto_create=True,

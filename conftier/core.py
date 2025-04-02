@@ -272,7 +272,7 @@ class ConfigManager(Generic[T]):
 
     def __init__(
         self,
-        framework_name: str,
+        config_name: str,
         config_schema: Type[T],  # Supports pydantic.BaseModel, dataclass, or dict
         version: str = "1.0.0",
         auto_create: bool = True,
@@ -281,13 +281,13 @@ class ConfigManager(Generic[T]):
         Initialize the configuration manager
 
         Args:
-            framework_name: Framework name, used to determine config file paths
+            config_name: Framework name, used to determine config file paths
             config_schema: Configuration schema definition (pydantic model, dataclass,
                 or dict)
             version: Configuration schema version
             auto_create: Whether to automatically create default config files
         """
-        self.framework_name: str = framework_name
+        self.config_name: str = config_name
         self.config_schema: Type[T] = config_schema
         self.version: str = version
         self.auto_create: bool = auto_create
@@ -323,10 +323,10 @@ class ConfigManager(Generic[T]):
         self._project_config_model: Optional[ConfigModel] = None
 
         # Configuration file paths
-        self.user_config_path: Path = get_user_config_path(framework_name)
+        self.user_config_path: Path = get_user_config_path(config_name)
         self.project_root: Optional[Path] = find_project_root()
         self.project_config_path: Optional[Path] = get_project_config_path(
-            framework_name, str(self.project_root) if self.project_root else None
+            config_name, str(self.project_root) if self.project_root else None
         )
 
         # Auto-create config files if they don't exist
@@ -557,7 +557,7 @@ class ConfigManager(Generic[T]):
             Path to the created configuration file
         """
         project_path = Path(path) if path else Path.cwd()
-        config_dir = project_path / f".{self.framework_name}"
+        config_dir = project_path / f".{self.config_name}"
         config_file = config_dir / "config.yaml"
 
         # Create directory if it doesn't exist
@@ -573,14 +573,14 @@ class ConfigManager(Generic[T]):
         return str(config_file)
 
 
-def get_user_config_path(framework_name: str) -> Path:
+def get_user_config_path(config_name: str) -> Path:
     """Get the path to the user-level configuration file"""
-    user_config_path = os.path.expanduser(f"~/.zeeland/{framework_name}/config.yaml")
+    user_config_path = os.path.expanduser(f"~/.zeeland/{config_name}/config.yaml")
     return Path(user_config_path)
 
 
 def get_project_config_path(
-    framework_name: str, project_path: Optional[str] = None
+    config_name: str, project_path: Optional[str] = None
 ) -> Optional[Path]:
     """Get the path to the project-level configuration file"""
     if project_path:
@@ -591,7 +591,7 @@ def get_project_config_path(
     if not project_root:
         return None
 
-    return project_root / f".{framework_name}" / "config.yaml"
+    return project_root / f".{config_name}" / "config.yaml"
 
 
 def find_project_root() -> Optional[Path]:

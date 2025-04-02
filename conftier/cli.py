@@ -19,12 +19,12 @@ def conftier():
 
 
 @conftier.command()
-@click.argument("framework_name")
+@click.argument("config_name")
 @click.option("--path", "-p", help="Project path")
-def init_project(framework_name: str, path: Optional[str] = None):
+def init_project(config_name: str, path: Optional[str] = None):
     """Initialize project configuration template"""
     project_path = Path(path) if path else Path.cwd()
-    config_dir = project_path / f".{framework_name}"
+    config_dir = project_path / f".{config_name}"
     config_file = config_dir / "config.yaml"
 
     if not config_dir.exists():
@@ -41,17 +41,17 @@ def init_project(framework_name: str, path: Optional[str] = None):
 
 
 @conftier.command()
-@click.argument("framework_name")
-def show_config(framework_name: str):
+@click.argument("config_name")
+def show_config(config_name: str):
     """Show current effective configuration and its sources"""
-    user_path = get_user_config_path(framework_name)
+    user_path = get_user_config_path(config_name)
     project_root = find_project_root()
     project_path = get_project_config_path(
-        framework_name, str(project_root) if project_root else None
+        config_name, str(project_root) if project_root else None
     )
 
     if not user_path.exists() and (not project_path or not project_path.exists()):
-        click.echo(f"No configuration files found for framework '{framework_name}'")
+        click.echo(f"No configuration files found for framework '{config_name}'")
         return
 
     if user_path.exists():
@@ -72,13 +72,13 @@ def show_config(framework_name: str):
 
 
 @conftier.command()
-@click.argument("framework_name")
+@click.argument("config_name")
 @click.option("--key", "-k", help="Config key to set (dot notation)")
 @click.option("--value", "-v", help="Value to set")
 @click.option(
     "--project", "-p", is_flag=True, help="Update project config instead of user config"
 )
-def set_config(framework_name: str, key: str, value: str, project: bool = False):
+def set_config(config_name: str, key: str, value: str, project: bool = False):
     """Set a configuration value"""
     if project:
         project_root = find_project_root()
@@ -86,7 +86,7 @@ def set_config(framework_name: str, key: str, value: str, project: bool = False)
             click.echo("No project root found. Cannot update project configuration.")
             return
 
-        config_path = get_project_config_path(framework_name, str(project_root))
+        config_path = get_project_config_path(config_name, str(project_root))
         if not config_path:
             click.echo("No project configuration path could be determined.")
             return
@@ -94,7 +94,7 @@ def set_config(framework_name: str, key: str, value: str, project: bool = False)
         if not config_path.parent.exists():
             config_path.parent.mkdir(parents=True, exist_ok=True)
     else:
-        config_path = get_user_config_path(framework_name)
+        config_path = get_user_config_path(config_name)
         if not config_path.parent.exists():
             config_path.parent.mkdir(parents=True, exist_ok=True)
 

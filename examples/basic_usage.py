@@ -29,7 +29,7 @@ def main_with_dataclass():
 
     # Initialize the configuration manager with type hints
     config_manager = ConfigManager(
-        framework_name="example",
+        config_name="example",
         config_schema=ExampleConfig,
         version="1.0.0",
         auto_create=True,
@@ -88,7 +88,7 @@ try:
 
         # Initialize the configuration manager with type hints
         config_manager = ConfigManager[PydanticExampleConfig](
-            framework_name="example_pydantic",
+            config_name="example_pydantic",
             config_schema=PydanticExampleConfig,
             version="1.0.0",
             auto_create=True,

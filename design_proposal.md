@@ -8,7 +8,7 @@ Conftier handles the complex logic of storing, reading, merging, validating, and
 
 ### User-level Configuration (User-based Configuration)
 
-- Storage Path: ~/.zeeland/{framework_name}/config.yaml
+- Storage Path: ~/.zeeland/{config_name}/config.yaml
 - Purpose: Store user personal preference settings that are effective across projects
 - Characteristics:
   - Globally effective for a single user
@@ -18,7 +18,7 @@ Conftier handles the complex logic of storing, reading, merging, validating, and
 
 ### Project-level Configuration (Project-based Configuration)
 
-- Storage Path: /.{framework_name}/config.yaml (located in the project root directory)
+- Storage Path: /.{config_name}/config.yaml (located in the project root directory)
 - Purpose: Store configurations specific to a project, suitable for team collaboration
 - Characteristics:
   - Can be included in version control
@@ -64,7 +64,7 @@ class GCOPConfig(BaseModel):
 
 #### Parameter Configuration
 
-Users can configure user-level parameters in `~/.zeeland/{framework_name}/config.yaml`, and if there are team configuration requirements, they can configure related parameters in `/.{framework_name}/config.yaml` in the current project directory, such as `/.gcop/config.yaml` in the example, and then gcop, which uses the conftier framework to build its configuration system, will read the user's configuration and complete its business.
+Users can configure user-level parameters in `~/.zeeland/{config_name}/config.yaml`, and if there are team configuration requirements, they can configure related parameters in `/.{config_name}/config.yaml` in the current project directory, such as `/.gcop/config.yaml` in the example, and then gcop, which uses the conftier framework to build its configuration system, will read the user's configuration and complete its business.
 
 ### SDK Design
 
@@ -76,7 +76,7 @@ class ConfigManager:
     
     def __init__(
         self, 
-        framework_name: str,
+        config_name: str,
         config_schema: Any,  # Supports pydantic.BaseModel or dataclass
         version: str = "1.0.0",
         auto_create: bool = True
@@ -85,7 +85,7 @@ class ConfigManager:
         Initializes the configuration manager
         
         Args:
-            framework_name: Framework name, used to determine the configuration file path
+            config_name: Framework name, used to determine the configuration file path
             config_schema: Configuration schema definition, can be pydantic model or dataclass
             version: Configuration schema version
             auto_create: Whether to automatically create the default configuration file
@@ -170,13 +170,12 @@ class ConfigManager:
 
 ```
 
-
 ```python
-def get_user_config_path(framework_name: str) -> Path:
+def get_user_config_path(config_name: str) -> Path:
     """Gets the user-level configuration file path"""
     pass
 
-def get_project_config_path(framework_name: str, project_path: Optional[str] = None) -> Path:
+def get_project_config_path(config_name: str, project_path: Optional[str] = None) -> Path:
     """Gets the project-level configuration file path"""
     pass
 
@@ -185,7 +184,6 @@ def find_project_root() -> Optional[Path]:
     pass
 
 ```
-
 
 ```python
 def merge_configs(
@@ -217,20 +215,19 @@ def conftier():
     pass
 
 @conftier.command()
-@click.argument("framework_name")
+@click.argument("config_name")
 @click.option("--path", "-p", help="Project path")
-def init_project(framework_name: str, path: Optional[str] = None):
+def init_project(config_name: str, path: Optional[str] = None):
     """Initializes project configuration template"""
     pass
 
 @conftier.command()
-@click.argument("framework_name")
-def show_config(framework_name: str):
+@click.argument("config_name")
+def show_config(config_name: str):
     """Displays the current effective configuration and its source"""
     pass
 
 ```
-
 
 User Example:
 
@@ -252,7 +249,7 @@ class GCOPConfig(BaseModel):
 
 # 2. Initialize the configuration manager
 config_manager = ConfigManager(
-    framework_name="gcop",
+    config_name="gcop",
     config_schema=GCOPConfig,
     version="1.0.0",
     auto_create=True
@@ -286,11 +283,11 @@ prompt_template: "Project specific prompt template"
 ```
 
 Configuration merging logic:
+
 - Builds the base configuration starting from default values
 - Loads user configuration and merges to overwrite default values
 - Loads project configuration and merges to overwrite the previous two levels
 - Validates the merged result against the schema
-
 
 Uses ConfigModel to simultaneously support Pydantic Model, dataclass, dict.
 

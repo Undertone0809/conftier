@@ -17,7 +17,7 @@ hero:
       link: /guide/introduction
     - theme: alt
       text: View on GitHub
-      link: <https://github.com/Undertone0809/conftier>
+      link: https://github.com/Undertone0809/conftier
 
 features:
 

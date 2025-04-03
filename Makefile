@@ -15,7 +15,7 @@ endif
 IMAGE := conftier
 VERSION := latest
 
-.PHONY: lock install  formatting test check-codestyle lint docker-build docker-remove cleanup help install-docs start-docs
+.PHONY: lock install  formatting test check-codestyle lint docker-build docker-remove cleanup help install-docs start-docs fmt
 
 lock:
 	poetry lock -n && poetry export --without-hashes > requirements.txt
@@ -26,6 +26,8 @@ install:
 format:
 	poetry run ruff format --config pyproject.toml .
 	poetry run ruff check --fix --config pyproject.toml .
+
+fmt: format
 
 test:
 	$(TEST_COMMAND)
@@ -47,6 +49,7 @@ help:
 	@echo "lock                                      Lock the dependencies."
 	@echo "install                                   Install the project dependencies."
 	@echo "format                                    Format the codebase."
+	@echo "fmt                                       Format the codebase."
 	@echo "test                                      Run the tests."
 	@echo "check-codestyle                           Check the codebase for style issues."
 	@echo "lint                                      Run the tests and check the codebase for style issues."

@@ -11,6 +11,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -18,6 +19,8 @@ from typing import (
 )
 
 import yaml
+
+from conftier.utils.logger import logger
 
 try:
     from pydantic import BaseModel
@@ -27,8 +30,8 @@ except ImportError:
     PYDANTIC_AVAILABLE = False
     BaseModel = object  # type: ignore
 
-# Type variables for better typing
-T = TypeVar("T")  # Generic type for schema
+
+T = TypeVar("T")
 PydanticT = TypeVar("PydanticT", bound="BaseModel")
 DataclassT = TypeVar("DataclassT")
 DictConfigT = Dict[str, Any]
@@ -88,7 +91,7 @@ class ConfigModel:
                 try:
                     instance = schema(**data)
                 except Exception as e:
-                    print(f"Warning: Failed to create Pydantic model: {e}")
+                    logger.error(f"Warning: Failed to create Pydantic model: {e}")
                     instance = schema()
             else:
                 instance = schema()
@@ -252,18 +255,10 @@ class ConfigModel:
         base_dict = self.to_dict()
         other_dict = other.to_dict()
 
-        # Deep merge the dictionaries
         merged_dict = deep_update(base_dict, other_dict)
 
-        # Create a new ConfigModel with the same schema type as this one
-        if self.schema_type == SCHEMA_TYPE_PYDANTIC:
-            schema = type(self._model)
-            return ConfigModel.from_schema(schema, merged_dict)
-        elif self.schema_type == SCHEMA_TYPE_DATACLASS:
-            schema = type(self._model)
-            return ConfigModel.from_schema(schema, merged_dict)
-        else:  # dict
-            return ConfigModel(SCHEMA_TYPE_DICT, merged_dict)
+        schema = type(self._model)
+        return ConfigModel.from_schema(schema, merged_dict)
 
 
 class ConfigManager(Generic[T]):
@@ -331,7 +326,6 @@ class ConfigManager(Generic[T]):
             config_name, str(self.project_root) if self.project_root else None
         )
 
-        # Auto-create config files if they don't exist
         if auto_create:
             self._ensure_user_config_exists()
 
@@ -347,7 +341,6 @@ class ConfigManager(Generic[T]):
 
     def _get_default_dict(self) -> Dict[str, Any]:
         """Get default configuration as a dictionary"""
-        # Use ConfigModel to handle the conversion
         default_model = ConfigModel.from_schema(self.config_schema)
         return default_model.to_dict()
 
@@ -363,34 +356,11 @@ class ConfigManager(Generic[T]):
         Returns:
             Merged final configuration object (same type as schema)
         """
-        # Get default configuration using ConfigModel
         default_config_model: ConfigModel = ConfigModel.from_schema(self.config_schema)
 
-        # Load user configuration
-        user_config_model: Optional[ConfigModel] = None
-        if self.user_config_path.exists():
-            try:
-                with open(self.user_config_path, "r") as f:
-                    user_config_dict = yaml.safe_load(f) or {}
-                    if user_config_dict:
-                        user_config_model = ConfigModel.from_schema(
-                            self.config_schema, user_config_dict
-                        )
-            except Exception as e:
-                print(f"Warning: Failed to load user config: {e}")
-
-        # Load project configuration
-        project_config_model: Optional[ConfigModel] = None
-        if self.project_config_path and self.project_config_path.exists():
-            try:
-                with open(self.project_config_path, "r") as f:
-                    project_config_dict = yaml.safe_load(f) or {}
-                    if project_config_dict:
-                        project_config_model = ConfigModel.from_schema(
-                            self.config_schema, project_config_dict
-                        )
-            except Exception as e:
-                print(f"Warning: Failed to load project config: {e}")
+        # Load user and project configs using helper method
+        user_config_model, _ = self._load_config_from_path(self.user_config_path)
+        project_config_model, _ = self._load_config_from_path(self.project_config_path)
 
         # Merge configurations using ConfigModel
         merged_config_model = default_config_model
@@ -441,6 +411,37 @@ class ConfigManager(Generic[T]):
             self._default_config = cast(T, self._default_config_model.model)
         return self._default_config
 
+    def _load_config_from_path(
+        self, config_path: Optional[Path]
+    ) -> Tuple[Optional[ConfigModel], Optional[T]]:
+        """
+        Helper method to load configuration from a path
+
+        Args:
+            config_path: Path to the configuration file
+
+        Returns:
+            Tuple of (ConfigModel, typed config object) or (None, None) if not available
+        """
+        if not config_path or not config_path.exists():
+            return None, None
+
+        try:
+            with open(config_path, "r") as f:
+                config_dict = yaml.safe_load(f) or {}
+
+            if not config_dict:
+                return None, None
+
+            config_model: ConfigModel = ConfigModel.from_schema(
+                self.config_schema, config_dict
+            )
+            typed_config: T = cast(T, config_model.model)
+            return config_model, typed_config
+        except Exception as e:
+            logger.error(f"Warning: Failed to load config from {config_path}: {e}")
+            return None, None
+
     def get_user_config(self) -> Optional[T]:
         """
         Get the user-level configuration
@@ -449,16 +450,9 @@ class ConfigManager(Generic[T]):
             User configuration object or None if not available
         """
         if self._user_config is None and self._user_config_model is None:
-            # Load user configuration
-            if self.user_config_path.exists():
-                with open(self.user_config_path, "r") as f:
-                    user_config = yaml.safe_load(f) or {}
-                if user_config:
-                    self._user_config_model = ConfigModel.from_schema(
-                        self.config_schema, user_config
-                    )
-                    self._user_config = cast(T, self._user_config_model.model)
-
+            self._user_config_model, self._user_config = self._load_config_from_path(
+                self.user_config_path
+            )
         return self._user_config
 
     def get_project_config(self) -> Optional[T]:
@@ -469,17 +463,49 @@ class ConfigManager(Generic[T]):
             Project configuration object or None if not available
         """
         if self._project_config is None and self._project_config_model is None:
-            # Load project configuration
-            if self.project_config_path and self.project_config_path.exists():
-                with open(self.project_config_path, "r") as f:
-                    project_config = yaml.safe_load(f) or {}
-                if project_config:
-                    self._project_config_model = ConfigModel.from_schema(
-                        self.config_schema, project_config
-                    )
-                    self._project_config = cast(T, self._project_config_model.model)
-
+            self._project_config_model, self._project_config = (
+                self._load_config_from_path(self.project_config_path)
+            )
         return self._project_config
+
+    def _update_config_file(
+        self,
+        config_path: Path,
+        config_model: Optional[ConfigModel],
+        config_update: Dict[str, Any],
+    ) -> Tuple[ConfigModel, T]:
+        """
+        Helper method for updating configuration files
+
+        Args:
+            config_path: Path to the configuration file
+            config_model: Existing config model or None
+            config_update: Updates to apply to the configuration
+
+        Returns:
+            Tuple of (updated ConfigModel, typed config object)
+        """
+        # Load or create config model if not provided
+        if config_model is None:
+            existing_config: Dict[str, Any] = {}
+            if config_path.exists():
+                try:
+                    with open(config_path, "r") as f:
+                        existing_config = yaml.safe_load(f) or {}
+                except Exception as e:
+                    logger.error(f"Warning: Failed to load config for update: {e}")
+
+            config_model = ConfigModel.from_schema(self.config_schema, existing_config)
+
+        config_model.update(config_update)
+
+        updated_config: Dict = config_model.to_dict()
+        os.makedirs(os.path.dirname(str(config_path)), exist_ok=True)
+        with open(config_path, "w") as f:
+            yaml.dump(updated_config, f, default_flow_style=False, sort_keys=False)
+
+        typed_config: T = cast(T, config_model.model)
+        return config_model, typed_config
 
     def update_user_config(self, config_update: Dict[str, Any]) -> None:
         """
@@ -488,27 +514,11 @@ class ConfigManager(Generic[T]):
         Args:
             config_update: Configuration dictionary to update
         """
-        # Load or create user config model
-        if self._user_config_model is None:
-            existing_config: Dict[str, Any] = {}
-            if self.user_config_path.exists():
-                with open(self.user_config_path, "r") as f:
-                    existing_config = yaml.safe_load(f) or {}
-            self._user_config_model = ConfigModel.from_schema(
-                self.config_schema, existing_config
-            )
+        self._user_config_model, self._user_config = self._update_config_file(
+            self.user_config_path, self._user_config_model, config_update
+        )
 
-        # Update the model
-        self._user_config_model.update(config_update)
-
-        # Save the updated config
-        updated_config = self._user_config_model.to_dict()
-        os.makedirs(os.path.dirname(self.user_config_path), exist_ok=True)
-        with open(self.user_config_path, "w") as f:
-            yaml.dump(updated_config, f, default_flow_style=False, sort_keys=False)
-
-        # Reset cached values to force reload
-        self._user_config = cast(T, self._user_config_model.model)
+        # Reset merged config to force reload
         self._config = None
         self._config_model = None
 
@@ -524,27 +534,11 @@ class ConfigManager(Generic[T]):
                 "No project root found. Cannot update project configuration."
             )
 
-        # Load or create project config model
-        if self._project_config_model is None:
-            existing_config: Dict[str, Any] = {}
-            if self.project_config_path.exists():
-                with open(self.project_config_path, "r") as f:
-                    existing_config = yaml.safe_load(f) or {}
-            self._project_config_model = ConfigModel.from_schema(
-                self.config_schema, existing_config
-            )
+        self._project_config_model, self._project_config = self._update_config_file(
+            self.project_config_path, self._project_config_model, config_update
+        )
 
-        # Update the model
-        self._project_config_model.update(config_update)
-
-        # Save the updated config
-        updated_config = self._project_config_model.to_dict()
-        os.makedirs(os.path.dirname(str(self.project_config_path)), exist_ok=True)
-        with open(self.project_config_path, "w") as f:
-            yaml.dump(updated_config, f, default_flow_style=False, sort_keys=False)
-
-        # Reset cached values to force reload
-        self._project_config = cast(T, self._project_config_model.model)
+        # Reset merged config to force reload
         self._config = None
         self._config_model = None
 
@@ -562,11 +556,9 @@ class ConfigManager(Generic[T]):
         config_dir = project_path / f".{self.config_name}"
         config_file = config_dir / "config.yaml"
 
-        # Create directory if it doesn't exist
         if not config_dir.exists():
             config_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create template file if it doesn't exist
         if not config_file.exists():
             default_config = self._get_default_dict()
             with open(config_file, "w") as f:

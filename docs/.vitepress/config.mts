@@ -43,13 +43,84 @@ export default withPwa(
     },
     head: [
       ...getAnalyticsScripts(),
+      ["link", { rel: "icon", href: "/logo.ico" }],
+      [
+        "meta",
+        {
+          property: "description",
+          content:
+            "Conftier is a powerful multi-level configuration framework.",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "keywords",
+          content: "conftier, config, multi-leve config",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "og:site_name",
+          content: "conftier - A powerful multi-level configuration framework",
+        },
+      ],
+      ["meta", { property: "og:url", content: "https://conftier.zeeland.top" }],
+      [
+        "meta",
+        {
+          property: "og:title",
+          content: "conftier - A powerful multi-level configuration framework",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "og:description",
+          content:
+            "Conftier is a powerful multi-level configuration framework.",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "og:image",
+          content:
+            "https://r2.zeeland.top/images/2025/04/8ec6af780e829e7c32245713440122a9.png",
+        },
+      ],
+      ["meta", { property: "twitter:card", content: "summary_large_image" }],
+      [
+        "meta",
+        {
+          property: "twitter:image",
+          content:
+            "https://r2.zeeland.top/images/2025/04/8ec6af780e829e7c32245713440122a9.png",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "twitter:title",
+          content: "conftier - A powerful multi-level configuration framework",
+        },
+      ],
+      [
+        "meta",
+        {
+          property: "twitter:description",
+          content:
+            "Conftier is a powerful multi-level configuration framework.",
+        },
+      ],
     ],
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config
       logo: "/logo.png",
       nav: [
         { text: "Home", link: "/" },
-        { text: "Guide", link: "/guide/" },
+        { text: "Get Started", link: "/guide/introduction" },
         {
           text: "GitHub",
           link: "https://github.com/Undertone0809/conftier",
@@ -57,18 +128,17 @@ export default withPwa(
       ],
       sidebar: [
         {
-          text: "Introduction",
+          text: "Get Started",
           items: [
-            { text: "Getting Started", link: "/guide/" },
-            { text: "Installation", link: "/guide/installation" },
+            { text: "Introduction", link: "/guide/introduction" },
+            { text: "Quick Start", link: "/guide/quick-start" },
           ],
         },
         {
           text: "Other",
           items: [
-            { text: "Overview", link: "/api/" },
-            { text: "Examples", link: "/api/examples" },
             { text: "Changelog", link: "/other/changelog" },
+            { text: "Contributing", link: "/other/contributing" },
           ],
         },
       ],

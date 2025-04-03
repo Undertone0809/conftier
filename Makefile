@@ -15,7 +15,7 @@ endif
 IMAGE := conftier
 VERSION := latest
 
-.PHONY: lock install  formatting test check-codestyle lint docker-build docker-remove cleanup help
+.PHONY: lock install  formatting test check-codestyle lint docker-build docker-remove cleanup help install-docs start-docs
 
 lock:
 	poetry lock -n && poetry export --without-hashes > requirements.txt
@@ -37,33 +37,11 @@ check-codestyle:
 
 lint: test check-codestyle 
 
-docs-install:
+install-docs:
 	cd docs && pnpm install
 
-docs-start:
+start-docs:
 	cd docs && npm run docs:dev
-
-# Example: make docker-build VERSION=latest
-# Example: make docker-build IMAGE=some_name VERSION=0.0.1
-docker-build:
-	@echo Building docker $(IMAGE):$(VERSION) ...
-	docker build \
-		-t $(IMAGE):$(VERSION) . \
-		-f ./docker/Dockerfile --no-cache
-
-# Example: make docker-remove VERSION=latest
-# Example: make docker-remove IMAGE=some_name VERSION=0.0.1
-docker-remove:
-	@echo Removing docker $(IMAGE):$(VERSION) ...
-	docker rmi -f $(IMAGE):$(VERSION)
-
-cleanup:
-	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
-	find . | grep -E ".DS_Store" | xargs rm -rf
-	find . | grep -E ".mypy_cache" | xargs rm -rf
-	find . | grep -E ".ipynb_checkpoints" | xargs rm -rf
-	find . | grep -E ".pytest_cache" | xargs rm -rf
-	rm -rf build/
 
 help:
 	@echo "lock                                      Lock the dependencies."
@@ -76,3 +54,5 @@ help:
 	@echo "docker-remove                             Remove the docker image."
 	@echo "cleanup                                   Clean the project directory."
 	@echo "help                                      Display this help message."
+	@echo "install-docs                              Install the documentation dependencies."
+	@echo "start-docs                                Start the documentation server."

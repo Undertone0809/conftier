@@ -150,12 +150,6 @@ export default withPwa(
             ],
           },
         ],
-        socialLinks: [
-          {
-            icon: "github",
-            link: "https://github.com/Undertone0809/conftier",
-          },
-        ],
         footer: {
           message: "Released under the MIT License.",
           copyright: "Copyright © 2025 conftier",

@@ -5,7 +5,7 @@ Unit tests for the ConfigManager class
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -32,7 +32,7 @@ class TestConfig:
     title: str = "test"
     enabled: bool = True
     number: int = 100
-    nested: NestedConfig = NestedConfig()
+    nested: NestedConfig = field(default_factory=NestedConfig)
 
 
 try:

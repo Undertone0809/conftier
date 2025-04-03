@@ -4,7 +4,7 @@ Unit tests for the ConfigModel class
 
 import os
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import pytest
@@ -23,7 +23,7 @@ class DataclassConfig:
     title: str = "dataclass"
     enabled: bool = True
     number: int = 100
-    nested: NestedConfig = NestedConfig()
+    nested: NestedConfig = field(default_factory=NestedConfig)
 
 
 try:

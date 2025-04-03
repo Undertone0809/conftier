@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to the conftier quick-start guide! In this guide, we'll build a complete configuration system for an AI assistant framework called "SmartAssist" using conftier.
+In this comprehensive guide, we'll embark on a step-by-step journey to create a complete configuration system for an AI assistant framework called "SmartAssist" using conftier. From scratch to a fully functional configuration system, we'll cover every detail to ensure a seamless integration of conftier into your project.
 
 ## Installation
 

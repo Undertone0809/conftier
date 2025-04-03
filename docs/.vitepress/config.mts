@@ -129,10 +129,6 @@ export default withPwa(
         nav: [
           { text: "Home", link: "/" },
           { text: "Get Started", link: "/guide/introduction" },
-          {
-            text: "GitHub",
-            link: "https://github.com/Undertone0809/conftier",
-          },
         ],
         sidebar: [
           {
@@ -152,7 +148,7 @@ export default withPwa(
         ],
         footer: {
           message: "Released under the MIT License.",
-          copyright: "Copyright © 2025 conftier",
+          copyright: "Copyright © 2025 Zeeland",
         },
       },
       pwa: {

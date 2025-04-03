@@ -548,6 +548,4 @@ config_manager: SmartAssistConfig = ConfigManager(
 
 ## Next Steps
 
-- Explore the [API Reference](/api/) for detailed information about all available functions and classes
-- Check out the [Examples](/api/examples) to see conftier in action
-- If you encounter any issues or have questions, please [open an issue](https://github.com/Undertone0809/conftier/issues) on our GitHub repository
+If you encounter any issues or have questions, please [open an issue](https://github.com/Undertone0809/conftier/issues) on our GitHub repository

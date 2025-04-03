@@ -18,6 +18,14 @@ A powerful multi-tier configuration management framework that simplifies the def
 
 Think of VSCode's configuration system: you have user settings that apply globally and workspace settings that override them for specific projects. Conftier brings this same intuitive model to your Python frameworks and applications.
 
+## Documentation
+
+For comprehensive guides, examples, and API reference, visit our documentation:
+
+- [Introduction](https://conftier.zeeland.top/)
+- [Quick Start Guide](https://conftier.zeeland.top/guide/quick-start.html)
+- [Contributing](https://conftier.zeeland.top/other/contributing.html)
+
 ## Overview
 
 Conftier helps you manage configurations across multiple levels:
@@ -27,6 +35,10 @@ Conftier helps you manage configurations across multiple levels:
 - **Default values**: Fallback values defined in your configuration schema
 
 Conftier automatically merges these configurations based on priority (project > user > default).
+
+<p align="center">
+   <img src="./docs/public/multi-config.png" alt="conftier Banner" style="border-radius: 15px;">
+</p>
 
 ## Key Features
 
@@ -86,23 +98,18 @@ Conftier shines when:
 3. **You need schema validation**: Ensure configuration values have the correct types and valid ranges
 4. **You want to reduce boilerplate**: Stop writing the same configuration loading code in every project
 
-## Documentation
+## 🛡 License
 
-For comprehensive guides, examples, and API reference, visit our documentation:
+[![License](https://img.shields.io/github/license/Undertone0809/conftier)](https://github.com/Undertone0809/conftier/blob/main/LICENSE)
 
-- [Introduction](https://conftier.zeeland.top/)
-- [Quick Start Guide](https://conftier.zeeland.top/guide/quick-start.html)
+This project is licensed under the terms of the `MIT` license.
+See [LICENSE](https://github.com/Undertone0809/conftier/blob/main/LICENSE) for more details.
 
-## Development
+## 🤝 Support
 
-```bash
-# Create and activate conda environment
-conda create -n conftier python==3.10
-conda activate conftier
+For more information, please
+contact: [zeeland4work@gmail.com](mailto:zeeland4work@gmail.com)
 
-# Install poetry and dependencies
-pip install poetry
-poetry install
-```
+## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/P3G-%F0%9F%9A%80-brightgreen)](https://github.com/Undertone0809/python-package-template)
 
-
+This project was generated with [P3G](https://github.com/Undertone0809/P3G)

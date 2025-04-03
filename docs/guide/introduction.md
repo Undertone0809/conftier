@@ -123,6 +123,10 @@ port: 5433
 pool_size: 25
 ```
 
+<p align="center">
+   <img src="/web-config.png" alt="conftier Banner" style="border-radius: 15px;">
+</p>
+
 ## Key Features
 
 - **Multi-level Configuration Management**: Like VSCode's user/workspace settings, handle default, user-level, and project-level configurations.
@@ -138,6 +142,10 @@ pool_size: 25
 - **CLI Integration**: Add configuration commands to your CLI tools with a single function call.
 
 - **IDE Autocompletion**: Full type hints for a great developer experience.
+
+<p align="center">
+   <img src="/multi-config.png" alt="conftier Banner" style="border-radius: 15px;">
+</p>
 
 ## When to Use Conftier
 

@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "conftier"
-version = "0.1.0"
+version = "0.1.1"
 description = "Multi-level configuration framework"
 readme = "README.md"
 authors = ["conftier <zeeland4work@gmail.com>"]
@@ -33,6 +33,10 @@ python = "^3.9,<4.0"
 typer = {extras = ["all"], version = "^0.4.0"}
 rich = "^10.14.0"
 zeeland = "^0.3.0"
+pydantic = {version = "^2.0.0", optional = true}
+
+[tool.poetry.extras]
+pydantic = ["pydantic"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

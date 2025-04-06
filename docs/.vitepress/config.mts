@@ -130,12 +130,24 @@ export default withPwa(
           { text: "Home", link: "/" },
           { text: "Get Started", link: "/guide/introduction" },
         ],
+        socialLinks: [
+          { icon: "github", link: "https://github.com/undertone0809/conftier" },
+          { icon: "x", link: "https://x.com/kfhedRk3lXofRIB" },
+        ],
         sidebar: [
           {
             text: "Get Started",
             items: [
               { text: "Introduction", link: "/guide/introduction" },
               { text: "Quick Start", link: "/guide/quick-start" },
+              {
+                text: "Framework Developer Journey",
+                link: "/guide/framework-journey",
+              },
+              {
+                text: "Application Developer Journey",
+                link: "/guide/application-journey",
+              },
             ],
           },
           {

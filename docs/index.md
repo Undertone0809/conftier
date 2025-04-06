@@ -1,8 +1,18 @@
 ---
-
-# <https://vitepress.dev/reference/default-theme-home-page>
-
 layout: home
+title: "Conftier: Multi-level Configuration Framework for Python"
+description: "A powerful configuration management system for Python applications with layered user and project settings, supporting Pydantic models and dataclasses."
+head:
+
+- - meta
+  - property: og:title
+    content: "Conftier: Multi-level Configuration Framework for Python"
+- - meta
+  - property: og:description
+    content: "A powerful configuration management system for Python applications with layered user and project settings"
+- - meta
+  - name: keywords
+    content: "conftier, python configuration, multi-level config, pydantic configuration, configuration framework, python library"
 
 hero:
   name: "conftier"
@@ -17,7 +27,7 @@ hero:
       link: /guide/introduction
     - theme: alt
       text: View on GitHub
-      link: https://github.com/Undertone0809/conftier
+      link: <https://github.com/Undertone0809/conftier>
 
 features:
 

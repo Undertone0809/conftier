@@ -1,3 +1,18 @@
+---
+title: "Getting Started with Conftier: A Multi-Level Configuration Framework"
+description: "Learn how to install and use Conftier, a powerful multi-level configuration framework for Python applications. Quick guide for framework and application developers."
+head:
+  - - meta
+    - property: og:title
+      content: "Getting Started with Conftier: A Multi-Level Configuration Framework"
+  - - meta
+    - property: og:description
+      content: "Learn how to install and use Conftier, a powerful multi-level configuration framework for Python applications."
+  - - meta
+    - name: keywords
+      content: "conftier, python configuration, multi-level config, configuration framework, pydantic config"
+---
+
 # Getting Started with Conftier
 
 Conftier is a powerful multi-level configuration framework designed to manage configurations across different scopes. This quick start guide will help you understand which approach best suits your needs.

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://conftier.zeeland.top/sitemap.xml 

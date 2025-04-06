@@ -1,3 +1,18 @@
+---
+title: "Contributing to Conftier: Developer Guidelines"
+description: "Learn how to contribute to Conftier, the multi-level configuration framework for Python. Guide for submitting improvements, bug fixes, and new features."
+head:
+  - - meta
+    - property: og:title
+      content: "Contributing to Conftier: Developer Guidelines"
+  - - meta
+    - property: og:description
+      content: "Learn how to contribute to Conftier, the multi-level configuration framework for Python."
+  - - meta
+    - name: keywords
+      content: "conftier contribution, open source, python development, pull requests, code guidelines"
+---
+
 # Contributing to conftier
 
 We welcome contributions to conftier! This document provides guidelines for contributing to the project.

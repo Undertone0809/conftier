@@ -1,3 +1,18 @@
+---
+title: "Framework Developer Journey with Conftier: Multi-Level Configuration"
+description: "Comprehensive guide for framework developers integrating Conftier to provide intuitive multi-level configuration for their users. Includes example implementation for an AI assistant framework."
+head:
+  - - meta
+    - property: og:title
+      content: "Framework Developer Journey with Conftier: Multi-Level Configuration"
+  - - meta
+    - property: og:description
+      content: "Comprehensive guide for framework developers integrating Conftier to provide intuitive multi-level configuration for their users."
+  - - meta
+    - name: keywords
+      content: "conftier framework, python framework configuration, multi-level config, configuration framework, user and project settings"
+---
+
 # Framework Developer & User Journey
 
 This guide covers the journey for framework developers integrating conftier and users of such frameworks.

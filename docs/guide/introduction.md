@@ -1,12 +1,15 @@
 ---
-title: Introduction
-description: Introduction to conftier(A powerful multi-level configuration management framework)
+title: "Introduction to Conftier: Multi-Level Configuration Framework"
+description: "Learn how Conftier simplifies configuration management for Python applications with a VSCode-like user and project settings approach. Find out key features and use cases."
 head:
   - - meta
     - property: og:title
-      content: Introduction to conftier(A powerful multi-level configuration management framework)
+      content: "Introduction to Conftier: Multi-Level Configuration Framework"
     - property: og:description
-      content: Introduction to conftier(A powerful multi-level configuration management framework)
+      content: "Learn how Conftier simplifies configuration management for Python applications with a VSCode-like user and project settings approach."
+  - - meta
+    - name: keywords
+      content: "conftier, python configuration, multi-level config, configuration management, nested settings, pydantic config"
 ---
 
 <p align="center">

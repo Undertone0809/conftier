@@ -1,3 +1,18 @@
+---
+title: "Application Developer Guide for Conftier Configuration Management"
+description: "Learn how to implement Conftier in your Python applications for robust configuration management across different environments. Step-by-step tutorial with FastAPI example."
+head:
+  - - meta
+    - property: og:title
+      content: "Application Developer Guide for Conftier Configuration Management"
+  - - meta
+    - property: og:description
+      content: "Learn how to implement Conftier in your Python applications for robust configuration management across different environments."
+  - - meta
+    - name: keywords
+      content: "conftier application, python app configuration, configuration management, fastapi configuration, environment config"
+---
+
 # Application Developer Journey
 
 This guide covers the journey for application developers who want to manage configuration for their applications using conftier. Unlike framework developers who need to support multiple users with different configuration levels, application developers typically focus on project-level configuration for their specific applications.

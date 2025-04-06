@@ -42,6 +42,13 @@ export default withPwa(
       description: "Multi-level configuration framework",
       sitemap: {
         hostname: "https://conftier.zeeland.top",
+        transformItems: (items) => {
+          return items.map((item) => ({
+            ...item,
+            changefreq: "weekly",
+            priority: 0.8,
+          }));
+        },
       },
       head: [
         ...getAnalyticsScripts(),

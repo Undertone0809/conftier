@@ -95,7 +95,8 @@ class TestConfigManager:
             config_name="test_framework",
             config_schema=TestConfig,
             version="1.0.0",
-            auto_create=True,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         assert config_manager.config_name == "test_framework"
@@ -125,7 +126,8 @@ class TestConfigManager:
             config_name="test_dict_framework",
             config_schema=test_dict,
             version="1.0.0",
-            auto_create=True,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         assert config_manager.config_name == "test_dict_framework"
@@ -149,7 +151,8 @@ class TestConfigManager:
             config_name="test_pydantic",
             config_schema=PydanticTestConfig,
             version="1.0.0",
-            auto_create=True,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         assert config_manager.config_name == "test_pydantic"
@@ -177,23 +180,38 @@ class TestConfigManager:
         if user_config_path.exists():
             os.remove(user_config_path)
 
-        # Initialize with auto_create=False
+        # Initialize with auto_create_user=False, auto_create_project=False
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
         )
 
-        # Load configuration
-        config = config_manager.load()
+        # With the new behavior, load() should raise FileNotFoundError when no configs exist # noqa
+        with pytest.raises(FileNotFoundError):
+            config_manager.load()
+
+        # We can still get the default config
+        default_config = config_manager.get_default_config()
 
         # Verify default values
+        assert default_config.title == "test"
+        assert default_config.enabled is True
+        assert default_config.number == 100
+        assert default_config.nested.name == "nested"
+        assert default_config.nested.value == 42
+
+        # Create a user config and then load should work
+        config_manager.create_user_config_template()
+
+        # Now load() should work
+        config = config_manager.load()
+
+        # Verify the values
         assert config.title == "test"
         assert config.enabled is True
         assert config.number == 100
-        assert config.nested.name == "nested"
-        assert config.nested.value == 42
-
-        # Verify no user config created
-        assert not user_config_path.exists()
 
     def test_conftier_load_with_user_config(self, temp_home_dir):
         """Test loading configuration with user config"""
@@ -215,7 +233,10 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
         )
 
         # Load configuration
@@ -258,7 +279,10 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
         )
 
         # Load configuration
@@ -293,7 +317,10 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
         )
 
         # Get user config
@@ -325,7 +352,10 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=False
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
         )
 
         # Get project config
@@ -344,9 +374,12 @@ class TestConfigManager:
         """Test updating user config"""
         config_name = "test_conftier_update_user"
 
-        # Initialize manager with auto_create
+        # Initialize manager with auto_create_user=True, auto_create_project=False
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         # Update user config
@@ -377,7 +410,10 @@ class TestConfigManager:
 
         # Initialize manager
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         # Update project config
@@ -406,35 +442,215 @@ class TestConfigManager:
         assert reloaded_config.nested.name == "nested"
 
     def test_conftier_create_project_template(self, temp_home_dir, temp_project_dir):
-        """Test creating project template"""
-        config_name = "test_conftier_template"
+        """Test create_project_template method"""
+        config_name = "test_create_project_template"
 
-        # Initialize manager
+        # Initialize manager with auto_create_user=True, auto_create_project=False
         config_manager = ConfigManager[TestConfig](
-            config_name=config_name, config_schema=TestConfig, auto_create=True
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
-        # First set up a project config with known values
-        config_manager.update_project_config(
-            {"title": "updated_project", "nested": {"value": 888}}
+        # Create project config template
+        project_config_path = config_manager.create_project_template()
+
+        # Verify project config path
+        assert os.path.exists(project_config_path)
+
+        # Verify config content
+        with open(project_config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        # Verify it contains default structure
+        assert config_dict["title"] == "test"
+        assert config_dict["enabled"] is True
+        assert config_dict["number"] == 100
+
+    def test_conftier_auto_create_user(self, temp_home_dir):
+        """Test auto_create_user parameter"""
+        config_name = "test_auto_create_user"
+        user_config_path = get_user_config_path(config_name)
+
+        # Delete any existing config
+        if user_config_path.exists():
+            os.remove(user_config_path)
+
+        # Initialize with auto_create_user=True, auto_create_project=False
+        ConfigManager[TestConfig](
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
-        # Create template
-        template_path = config_manager.create_project_template()
+        # Check if user config was created
+        assert user_config_path.exists()
 
-        # Verify file was created
-        assert os.path.exists(template_path)
+        # Verify config content
+        with open(user_config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
 
-        with open(template_path, "r") as f:
-            template_config = yaml.safe_load(f)
+        assert config_dict["title"] == "test"
+        assert config_dict["enabled"] is True
 
-        # The implementation might use any of:
-        # 1. The default schema values (title="test", value=42)
-        # 2. The current project config values (title="updated_project", value=888)
-        # 3. Some other implementation-specific template
-        # We just verify it created something valid
-        assert isinstance(template_config, dict)
-        assert "title" in template_config
+    def test_conftier_auto_create_project(self, temp_home_dir, temp_project_dir):
+        """Test auto_create_project parameter"""
+        config_name = "test_auto_create_project"
+
+        # Initialize with auto_create_project=True
+        ConfigManager[TestConfig](
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=True,
+        )
+
+        # Get project config path
+        project_config_path = get_project_config_path(
+            config_name, str(Path(temp_project_dir))
+        )
+
+        # Check if project config was created
+        assert project_config_path and project_config_path.exists()
+
+        # Verify config content
+        with open(project_config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        assert config_dict["title"] == "test"
+        assert config_dict["enabled"] is True
+
+    def test_conftier_no_auto_create(self, temp_home_dir, temp_project_dir):
+        """Test behavior when both auto_create options are False"""
+        config_name = "test_no_auto_create"
+        user_config_path = get_user_config_path(config_name)
+        project_config_path = get_project_config_path(
+            config_name, str(Path(temp_project_dir))
+        )
+
+        # Delete any existing configs
+        if user_config_path.exists():
+            os.remove(user_config_path)
+        if project_config_path and project_config_path.exists():
+            os.remove(project_config_path)
+
+        # Initialize with both auto_create_user=False, auto_create_project=False
+        config_manager = ConfigManager[TestConfig](
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
+        )
+
+        # Verify configs don't exist
+        assert not user_config_path.exists()
+        assert not (project_config_path and project_config_path.exists())
+
+        # Loading should raise an error
+        with pytest.raises(FileNotFoundError):
+            config_manager.load()
+
+    def test_conftier_create_user_config_template(self, temp_home_dir):
+        """Test create_user_config_template method"""
+        config_name = "test_create_user_template"
+        user_config_path = get_user_config_path(config_name)
+
+        # Delete any existing config
+        if user_config_path.exists():
+            os.remove(user_config_path)
+
+        # Initialize without auto creation
+        config_manager = ConfigManager[TestConfig](
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
+        )
+
+        # Verify user config doesn't exist
+        assert not user_config_path.exists()
+
+        # Create user config template
+        template_path = config_manager.create_user_config_template()
+
+        # Verify user config now exists
+        assert user_config_path.exists()
+        assert template_path == str(user_config_path)
+
+        # Verify config content
+        with open(user_config_path, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        assert config_dict["title"] == "test"
+        assert config_dict["enabled"] is True
+
+    def test_conftier_create_project_config_template(
+        self, temp_home_dir, temp_project_dir
+    ):
+        """Test create_project_config_template method"""
+        config_name = "test_create_project_config_template"
+
+        # Initialize without auto creation
+        config_manager = ConfigManager[TestConfig](
+            config_name=config_name, config_schema=TestConfig, auto_create_project=False
+        )
+
+        # Get project config path
+        project_path = Path(temp_project_dir)
+        config_dir = project_path / f".{config_name}"
+        config_file = config_dir / "config.yaml"
+
+        # Verify project config doesn't exist
+        assert not config_file.exists()
+
+        # Create project config template
+        config_manager.create_project_config_template()
+
+        # Verify project config now exists
+        assert config_file.exists()
+
+        # Verify config content
+        with open(config_file, "r") as f:
+            config_dict = yaml.safe_load(f)
+
+        assert config_dict["title"] == "test"
+        assert config_dict["enabled"] is True
+
+    def test_conftier_load_either_config(self, temp_home_dir, temp_project_dir):
+        """Test that load doesn't fail when either user or project config exists"""
+        config_name = "test_load_either"
+        user_config_path = get_user_config_path(config_name)
+
+        # Delete any existing configs
+        if user_config_path.exists():
+            os.remove(user_config_path)
+
+        # Setup project config only
+        project_dir = Path(temp_project_dir)
+        project_config_dir = project_dir / f".{config_name}"
+        os.makedirs(project_config_dir, exist_ok=True)
+
+        project_config_path = project_config_dir / "config.yaml"
+        project_config = {"title": "project_only"}
+
+        with open(project_config_path, "w") as f:
+            yaml.dump(project_config, f)
+
+        # Initialize without auto creation
+        config_manager = ConfigManager[TestConfig](
+            config_name=config_name,
+            config_schema=TestConfig,
+            auto_create_user=False,
+            auto_create_project=False,
+        )
+
+        # This should not raise an error because at least one config exists
+        config = config_manager.load()
+
+        # Verify merged values
+        assert config.title == "project_only"  # From project config
 
     @pytest.mark.skipif(not PYDANTIC_AVAILABLE, reason="Pydantic not installed")
     def test_conftier_pydantic_full_workflow(self, temp_home_dir, temp_project_dir):
@@ -445,7 +661,8 @@ class TestConfigManager:
         config_manager = ConfigManager[PydanticTestConfig](
             config_name=config_name,
             config_schema=PydanticTestConfig,
-            auto_create=True,
+            auto_create_user=True,
+            auto_create_project=False,
         )
 
         # Verify default config

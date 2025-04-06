@@ -41,6 +41,7 @@ SCHEMA_TYPE_PYDANTIC = "pydantic"
 SCHEMA_TYPE_DATACLASS = "dataclass"
 SCHEMA_TYPE_DICT = "dict"
 SchemaType = Literal[SCHEMA_TYPE_PYDANTIC, SCHEMA_TYPE_DATACLASS, SCHEMA_TYPE_DICT]
+ConfigPath = str
 
 
 class ConfigModel:
@@ -272,7 +273,8 @@ class ConfigManager(Generic[T]):
         config_name: str,
         config_schema: Type[T],  # Supports pydantic.BaseModel, dataclass, or dict
         version: str = "1.0.0",
-        auto_create: bool = True,
+        auto_create_user: bool = False,
+        auto_create_project: bool = False,
     ):
         """
         Initialize the configuration manager
@@ -282,12 +284,15 @@ class ConfigManager(Generic[T]):
             config_schema: Configuration schema definition (pydantic model, dataclass,
                 or dict)
             version: Configuration schema version
-            auto_create: Whether to automatically create default config files
+            auto_create_user: Whether to automatically create user config file if not
+            exists auto_create_project: Whether to automatically create project config
+            file if not exists.
         """
         self.config_name: str = config_name
         self.config_schema: Type[T] = config_schema
         self.version: str = version
-        self.auto_create: bool = auto_create
+        self.auto_create_user: bool = auto_create_user
+        self.auto_create_project: bool = auto_create_project
         self.schema_type: SchemaType
 
         if (
@@ -326,18 +331,11 @@ class ConfigManager(Generic[T]):
             config_name, str(self.project_root) if self.project_root else None
         )
 
-        if auto_create:
-            self._ensure_user_config_exists()
+        if auto_create_user:
+            self.create_user_config_template()
 
-    def _ensure_user_config_exists(self) -> None:
-        """Ensure user config file and directory exist"""
-        if not self.user_config_path.parent.exists():
-            self.user_config_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if not self.user_config_path.exists():
-            default_config = self._get_default_dict()
-            with open(self.user_config_path, "w") as f:
-                yaml.dump(default_config, f, default_flow_style=False, sort_keys=False)
+        if auto_create_project and self.project_config_path:
+            self.create_project_config_template()
 
     def _get_default_dict(self) -> Dict[str, Any]:
         """Get default configuration as a dictionary"""
@@ -355,14 +353,46 @@ class ConfigManager(Generic[T]):
 
         Returns:
             Merged final configuration object (same type as schema)
+
+        Raises:
+            FileNotFoundError: If both user and project configuration files don't exist
+            and auto_create options are disabled
         """
         default_config_model: ConfigModel = ConfigModel.from_schema(self.config_schema)
 
-        # Load user and project configs using helper method
+        user_config_exists = self.user_config_path.exists()
+        project_config_exists = (
+            self.project_config_path and self.project_config_path.exists()
+        )
+
+        if not user_config_exists and self.auto_create_user:
+            self.create_user_config_template()
+            user_config_exists = True
+
+        if (
+            self.project_config_path
+            and not project_config_exists
+            and self.auto_create_project
+        ):
+            self.create_project_config_template()
+            project_config_exists = True
+
+        if not user_config_exists and not project_config_exists:
+            error_message = "Configuration files not found. "
+
+            if self.project_config_path:
+                error_message += (
+                    f"Project config missing at {self.project_config_path}. "
+                )
+
+            error_message += f"User config missing at {self.user_config_path}. "
+            error_message += "Use create_user_config_template() or create_project_config_template() to create them, "  # noqa
+            error_message += "or set auto_create_user=True or auto_create_project=True."
+            raise FileNotFoundError(error_message)
+
         user_config_model, _ = self._load_config_from_path(self.user_config_path)
         project_config_model, _ = self._load_config_from_path(self.project_config_path)
 
-        # Merge configurations using ConfigModel
         merged_config_model = default_config_model
         if user_config_model:
             merged_config_model = merged_config_model.merge(user_config_model)
@@ -542,9 +572,24 @@ class ConfigManager(Generic[T]):
         self._config = None
         self._config_model = None
 
-    def create_project_template(self, path: Optional[str] = None) -> str:
+    def create_user_config_template(self) -> ConfigPath:
+        """Create a user configuration template if it doesn't exist
+
+        Returns:
+            Path to the created configuration file
         """
-        Create a project configuration template
+        if not self.user_config_path.parent.exists():
+            self.user_config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.user_config_path.exists():
+            default_config = self._get_default_dict()
+            with open(self.user_config_path, "w") as f:
+                yaml.dump(default_config, f, default_flow_style=False, sort_keys=False)
+
+        return str(self.user_config_path)
+
+    def create_project_config_template(self, path: Optional[str] = None) -> ConfigPath:
+        """Create a project configuration template
 
         Args:
             path: Optional project path, defaults to current directory
@@ -565,6 +610,19 @@ class ConfigManager(Generic[T]):
                 yaml.dump(default_config, f, default_flow_style=False, sort_keys=False)
 
         return str(config_file)
+
+    def create_project_template(self, path: Optional[str] = None) -> ConfigPath:
+        """Create a project configuration template (deprecated)
+
+        Use create_project_config_template instead.
+
+        Args:
+            path: Optional project path, defaults to current directory
+
+        Returns:
+            Path to the created configuration file
+        """
+        return self.create_project_config_template(path)
 
 
 def get_user_config_path(config_name: str) -> Path:
@@ -588,25 +646,22 @@ def get_project_config_path(
     return project_root / f".{config_name}" / "config.yaml"
 
 
+# TODO: need to optimize
 def find_project_root() -> Optional[Path]:
-    """
-    Find the project root directory by looking for common project files
+    """Find the project root directory by looking for common project files
     like .git, pyproject.toml, etc.
     """
     cwd = Path.cwd()
 
-    # Common project root indicators
     indicators = [".git", "pyproject.toml", "setup.py", "package.json", "Cargo.toml"]
 
-    # Check current directory and parents until root
     current = cwd
-    while current.parent != current:  # Stop at system root
+    while current.parent != current:
         for indicator in indicators:
             if (current / indicator).exists():
                 return current
         current = current.parent
 
-    # No project root found
     return None
 
 
@@ -615,8 +670,7 @@ def merge_configs_dict(
     user_config: Dict[str, Any],
     project_config: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """
-    Merge multiple configuration levels
+    """Merge multiple configuration levels
 
     Args:
         default_config: Default configuration
@@ -642,8 +696,7 @@ def merge_configs_dict(
 def deep_update(
     base_dict: Dict[str, Any], update_dict: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Recursively update a dictionary
+    """Recursively update a dictionary
 
     Args:
         base_dict: The base dictionary to update

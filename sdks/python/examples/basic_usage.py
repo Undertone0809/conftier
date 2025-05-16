@@ -32,7 +32,8 @@ def main_with_dataclass():
         config_name="example",
         config_schema=ExampleConfig,
         version="1.0.0",
-        auto_create=True,
+        auto_create_user=True,
+        auto_create_project=True,
     )
 
     # Load the merged configuration
@@ -91,7 +92,7 @@ try:
             config_name="example_pydantic",
             config_schema=PydanticExampleConfig,
             version="1.0.0",
-            auto_create=True,
+            auto_create_user=True,
         )
 
         # Load the merged configuration
@@ -125,4 +126,4 @@ except ImportError:
 
 if __name__ == "__main__":
     main_with_dataclass()
-    main_with_pydantic()
+    # main_with_pydantic()

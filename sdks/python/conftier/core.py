@@ -595,17 +595,18 @@ class ConfigManager(Generic[T]):
 
         return str(self.user_config_path)
 
-    def create_project_config_template(self, path: Optional[str] = None) -> ConfigPath:
+    def create_project_config_template(self) -> ConfigPath:
         """Create a project configuration template
-
-        Args:
-            path: Optional project path, defaults to current directory
 
         Returns:
             Path to the created configuration file
         """
-        project_path = Path(path) if path else Path.cwd()
-        config_dir = project_path / f".{self.config_name}"
+        if not self.project_root:
+            raise ValueError(
+                "No project root found. Cannot create project configuration."
+            )
+
+        config_dir = self.project_root / f".{self.config_name}"
         config_file = config_dir / "config.yaml"
 
         if not config_dir.exists():
@@ -617,19 +618,6 @@ class ConfigManager(Generic[T]):
                 yaml.dump(default_config, f, default_flow_style=False, sort_keys=False)
 
         return str(config_file)
-
-    def create_project_template(self, path: Optional[str] = None) -> ConfigPath:
-        """Create a project configuration template (deprecated)
-
-        Use create_project_config_template instead.
-
-        Args:
-            path: Optional project path, defaults to current directory
-
-        Returns:
-            Path to the created configuration file
-        """
-        return self.create_project_config_template(path)
 
 
 def get_user_config_path(config_name: str) -> Path:

@@ -429,6 +429,13 @@ class ConfigManager(Generic[T]):
             return self.load()
         return self._config
 
+    @property
+    def merged_config(self) -> T:
+        """
+        Get the merged configuration
+        """
+        return self.config
+
     def get_default_config(self) -> T:
         """
         Get the default configuration

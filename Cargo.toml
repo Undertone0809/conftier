@@ -1,0 +1,8 @@
+[package]
+name = "confiter"
+version = "0.0.1"
+edition = "2024"
+description = "Multi-level configuration framework"
+license = "MIT"
+
+[dependencies]

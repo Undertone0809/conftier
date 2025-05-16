@@ -32,5 +32,6 @@ jobs:
         env:
           PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
+          cd sdks/python
           poetry config pypi-token.pypi $PYPI_API_TOKEN
           poetry publish --build

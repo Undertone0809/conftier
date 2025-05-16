@@ -5,7 +5,7 @@ version: 2
 
 updates:
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "sdks/python"
     schedule:
       interval: "monthly"
     allow:
@@ -15,17 +15,7 @@ updates:
     open-pull-requests-limit: 50
 
   - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    allow:
-      - dependency-type: "all"
-    commit-message:
-      prefix: ":arrow_up:"
-    open-pull-requests-limit: 50
-
-  - package-ecosystem: "docker"
-    directory: "/docker"
+    directory: "sdks/python"
     schedule:
       interval: "monthly"
     allow:

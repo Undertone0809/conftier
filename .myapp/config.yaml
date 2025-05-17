@@ -1,0 +1,12 @@
+app:
+  name: ''
+  version: ''
+  debug: false
+logging:
+  level: ''
+  file: null
+database:
+  url: postgresql://localhost:5432/mydb
+  username: admin
+  password: ''
+  pool_size: 0

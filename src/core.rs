@@ -495,7 +495,6 @@ where
 
         config_file
     }
-
 }
 
 /// Get the path to the user-level configuration file

@@ -496,10 +496,6 @@ where
         config_file
     }
 
-    /// Create a project configuration template (deprecated, uses create_project_config_template)
-    pub fn create_project_template(&self, path: Option<&str>) -> PathBuf {
-        self.create_project_config_template(path)
-    }
 }
 
 /// Get the path to the user-level configuration file

@@ -441,33 +441,6 @@ class TestConfigManager:
         assert reloaded_config.number == 100
         assert reloaded_config.nested.name == "nested"
 
-    def test_conftier_create_project_template(self, temp_home_dir, temp_project_dir):
-        """Test create_project_template method"""
-        config_name = "test_create_project_template"
-
-        # Initialize manager with auto_create_user=True, auto_create_project=False
-        config_manager = ConfigManager[TestConfig](
-            config_name=config_name,
-            config_schema=TestConfig,
-            auto_create_user=True,
-            auto_create_project=False,
-        )
-
-        # Create project config template
-        project_config_path = config_manager.create_project_template()
-
-        # Verify project config path
-        assert os.path.exists(project_config_path)
-
-        # Verify config content
-        with open(project_config_path, "r") as f:
-            config_dict = yaml.safe_load(f)
-
-        # Verify it contains default structure
-        assert config_dict["title"] == "test"
-        assert config_dict["enabled"] is True
-        assert config_dict["number"] == 100
-
     def test_conftier_auto_create_user(self, temp_home_dir):
         """Test auto_create_user parameter"""
         config_name = "test_auto_create_user"

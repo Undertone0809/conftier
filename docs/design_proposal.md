@@ -156,18 +156,6 @@ class ConfigManager:
         """
         pass
     
-    def create_project_template(self, path: Optional[str] = None) -> str:
-        """
-        Creates a project configuration template
-        
-        Args:
-            path: Optional project path, default is the current directory
-            
-        Returns:
-            The path of the created configuration file
-        """
-        pass
-
 ```
 
 ```python

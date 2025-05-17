@@ -4,8 +4,7 @@
 
 <div align="center">
 
-[![Rust CI](https://github.com/Undertone0809/conftier/workflows/Rust%20CI/badge.svg)](https://github.com/Undertone0809/conftier/actions?query=workflow%3A%22Rust+CI%22)
-[![Python Build](https://github.com/Undertone0809/conftier/workflows/build/badge.svg?branch=main&event=push)](https://github.com/Undertone0809/conftier/actions?query=workflow%3Abuild)
+[![Build status](https://github.com/Undertone0809/conftier/workflows/build/badge.svg?branch=main&event=push)](https://github.com/Undertone0809/conftier/actions?query=workflow%3Abuild)
 [![Python Version](https://img.shields.io/pypi/pyversions/conftier.svg)](https://pypi.org/project/conftier/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/Undertone0809/conftier)](https://github.com/Undertone0809/conftier/blob/main/LICENSE)
@@ -15,16 +14,9 @@
 
 # Conftier
 
-A powerful multi-tier configuration management framework that simplifies the definition, access, and synchronization of layered configurations in applications.
+A powerful multi-tier configuration management framework that simplifies the definition, access, and synchronization of layered configurations in Python applications.
 
-Think of VSCode's configuration system: you have user settings that apply globally and workspace settings that override them for specific projects. Conftier brings this same intuitive model to your frameworks and applications.
-
-## Available Implementations
-
-Conftier is available in multiple languages:
-
-- **Python**: Full-featured implementation with Pydantic and dataclass support
-- **Rust**: High-performance implementation with serde integration (NEW!)
+Think of VSCode's configuration system: you have user settings that apply globally and workspace settings that override them for specific projects. Conftier brings this same intuitive model to your Python frameworks and applications.
 
 ## Documentation
 
@@ -51,15 +43,23 @@ Conftier automatically merges these configurations based on priority (project > 
 ## Key Features
 
 - **Multi-level Configuration Management**: Like VSCode's user/workspace settings pattern
-- **Flexible Schema Definition**: Use Pydantic models, dataclasses (Python) or serde structs (Rust)
+- **Flexible Schema Definition**: Use Pydantic models or dataclasses to define and validate configurations
 - **Type Safety**: No more string/int confusion or missing required fields
 - **Smart Merging**: Only override what's specified, preserving other values
 - **CLI Integration**: Built-in command-line tools for configuration management
-- **Cross-language Compatibility**: Same configuration model in different languages
+- **IDE Autocompletion**: Full type hints for a great developer experience
+
+## Why Conftier?
+
+| Without Conftier | With Conftier |
+|------------------|---------------|
+| Manual parsing of multiple config files | Automatic loading and merging |
+| Type errors discovered at runtime | Validation at load time |
+| Custom code for merging configs | Smart merging built-in |
+| Documentation struggles | Schema serves as documentation |
+| Repetitive boilerplate | Consistent, reusable pattern |
 
 ## Installation
-
-### Python
 
 ```bash
 # Basic installation
@@ -69,21 +69,10 @@ pip install conftier
 pip install conftier[pydantic]
 ```
 
-### Rust
-
-Add this to your Cargo.toml:
-
-```toml
-[dependencies]
-conftier = ">=0.0.2"
-```
-
-## Quick Examples
-
-### Python Example
+## Quick Example
 
 ```python
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from conftier import ConfigManager
 
 class AppConfig(BaseModel):
@@ -98,32 +87,6 @@ config_manager = ConfigManager(
 
 # Load the merged configuration
 config: AppConfig = config_manager.load()
-```
-
-### Rust Example
-
-```rust
-use serde::{Serialize, Deserialize};
-use conftier::core::ConfigManager;
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct AppConfig {
-    app_name: String,
-    debug: bool,
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize config manager
-    let mut config_manager = ConfigManager::<AppConfig>::new(
-        "myapp", "1.0", true, true
-    );
-    
-    // Load and access configuration
-    let config = config_manager.load();
-    println!("App name: {}", config.app_name);
-    
-    Ok(())
-}
 ```
 
 ## When to Use Conftier

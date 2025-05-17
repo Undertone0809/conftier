@@ -624,3 +624,6 @@ MigrationBackup/
 # Added by cargo
 
 /target
+
+# Rust specific ignores
+**/*.rs.bk

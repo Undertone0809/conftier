@@ -6,9 +6,10 @@ description = "Multi-level configuration framework"
 license = "MIT"
 
 [dependencies]
-log = "0.4"
-env_logger = "0.10"
-serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-dirs = "5.0"
-clap = { version = "4.4", features = ["derive"] }
+log = ">=0.4"
+env_logger = ">=0.10"
+serde = { version = ">=1.0", features = ["derive"] }
+serde_yaml = ">=0.9"
+dirs = ">=5.0"
+clap = { version = ">=4.4", features = ["derive"] }
+scopeguard = ">=1.2"

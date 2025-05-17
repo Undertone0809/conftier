@@ -118,14 +118,14 @@ fn get_value<T: for<'de> Deserialize<'de>>(config: &AppConfig, path: &str) -> Op
             "app" => match key {
                 "name" => serde_yaml::to_value(&config.app.name).ok(),
                 "version" => serde_yaml::to_value(&config.app.version).ok(),
-                "debug" => serde_yaml::to_value(&config.app.debug).ok(),
+                "debug" => serde_yaml::to_value(config.app.debug).ok(),
                 _ => None,
             },
             "database" => match key {
                 "url" => serde_yaml::to_value(&config.database.url).ok(),
                 "username" => serde_yaml::to_value(&config.database.username).ok(),
                 "password" => serde_yaml::to_value(&config.database.password).ok(),
-                "pool_size" => serde_yaml::to_value(&config.database.pool_size).ok(),
+                "pool_size" => serde_yaml::to_value(config.database.pool_size).ok(),
                 _ => None,
             },
             "logging" => match key {

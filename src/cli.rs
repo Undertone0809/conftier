@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::{Parser, Subcommand};
-use serde_yaml;
 
 use crate::core::{find_project_root, get_project_config_path, get_user_config_path};
 

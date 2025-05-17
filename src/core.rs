@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 
 use log::error;
 use serde::{de::DeserializeOwned, Serialize};
-use serde_yaml;
 
 /// Schema type enumeration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -175,7 +174,7 @@ where
             project_root.as_ref().map(|p| p.to_str().unwrap()),
         );
 
-        let manager = ConfigManager {
+        ConfigManager {
             config_name: config_name.to_owned(),
             version: version.to_owned(),
             auto_create_user,
@@ -189,9 +188,7 @@ where
             user_config_path,
             project_root,
             project_config_path: project_config_path.clone(),
-        };
-
-        manager
+        }
     }
 
     /// Initialize after construction
@@ -220,7 +217,7 @@ where
         let project_config_exists = self
             .project_config_path
             .as_ref()
-            .map_or(false, |p| p.exists());
+            .is_some_and(|p| p.exists());
 
         if !user_config_exists && self.auto_create_user {
             self.create_user_config_template();
@@ -525,10 +522,7 @@ pub fn get_project_config_path(config_name: &str, project_path: Option<&str>) ->
     let project_root = if let Some(path) = project_path {
         PathBuf::from(path)
     } else {
-        match find_project_root() {
-            Some(root) => root,
-            None => return None,
-        }
+        find_project_root()?
     };
 
     Some(
@@ -661,7 +655,6 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use serde::{Deserialize, Serialize};
-    use serde_yaml;
 
     use super::*;
 
@@ -789,7 +782,7 @@ mod tests {
         let model: ConfigModel<TestConfig> = ConfigModel::from_schema(Some(data));
         println!("Model: {:?}", model);
         assert_eq!(model.model().app.name, "TestApp");
-        assert_eq!(model.model().app.debug, true);
+        assert!(model.model().app.debug);
     }
 
     #[test]
@@ -832,7 +825,7 @@ mod tests {
             }
 
             if let Some(serde_yaml::Value::Bool(debug)) = app_map.get(&debug_key) {
-                assert_eq!(*debug, true);
+                assert!(*debug);
             } else {
                 panic!("Expected app.debug to be a boolean");
             }
@@ -868,7 +861,7 @@ mod tests {
 
         // Verify update results
         assert_eq!(model.model().app.name, "UpdatedApp");
-        assert_eq!(model.model().app.debug, true);
+        assert!(model.model().app.debug);
     }
 
     #[test]
@@ -916,7 +909,7 @@ mod tests {
 
         // Verify merge results
         assert_eq!(merged_model.model().app.name, "BaseApp"); // Not in other, should keep base value
-        assert_eq!(merged_model.model().app.debug, true); // In other, should use new value
+        assert!(merged_model.model().app.debug); // In other, should use new value
         assert_eq!(merged_model.model().database.url, "other_url"); // In other, should use new value
         assert_eq!(merged_model.model().database.username, "base_user"); // Not in other, should keep base value
     }
@@ -1005,7 +998,7 @@ mod tests {
             }
 
             if let Some(serde_yaml::Value::Bool(debug)) = app_map.get(&debug_key) {
-                assert_eq!(*debug, true); // Updated, should use new value
+                assert!(*debug); // Updated, should use new value
             } else {
                 panic!("Expected app.debug to be a boolean");
             }
@@ -1080,17 +1073,14 @@ mod tests {
         let project_yaml = serde_yaml::to_string(&project_config).unwrap();
 
         create_test_config_file(&manager.user_config_path, &user_yaml);
-        create_test_config_file(
-            &manager.project_config_path.as_ref().unwrap(),
-            &project_yaml,
-        );
+        create_test_config_file(manager.project_config_path.as_ref().unwrap(), &project_yaml);
 
         // Load configuration
         let config = manager.load();
 
         // Verify merge results
         assert_eq!(config.app.name, "UserApp"); // Retrieved from user config
-        assert_eq!(config.app.debug, true); // Retrieved from project config (overrides user config)
+        assert!(config.app.debug); // Retrieved from project config (overrides user config)
         assert_eq!(config.database.url, "project_db_url"); // Retrieved from project config (overrides user config)
         assert_eq!(config.database.username, "user"); // Retrieved from user config
         assert_eq!(config.database.password, "secret"); // Retrieved from user config

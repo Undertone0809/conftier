@@ -1,0 +1,185 @@
+name: Package Management
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      package_type:
+        description: "Package type to publish"
+        required: true
+        default: "both"
+        type: "choice"
+        options:
+          - python
+          - rust
+          - both
+      action:
+        description: "Action to perform"
+        required: true
+        default: "build"
+        type: "choice"
+        options:
+          - build
+          - publish
+
+permissions:
+  contents: read
+
+jobs:
+  determine_action:
+    runs-on: ubuntu-latest
+    outputs:
+      build_python: ${{ steps.set-matrix.outputs.build_python }}
+      build_rust: ${{ steps.set-matrix.outputs.build_rust }}
+      publish_python: ${{ steps.set-matrix.outputs.publish_python }}
+      publish_rust: ${{ steps.set-matrix.outputs.publish_rust }}
+    steps:
+      - id: set-matrix
+        run: |
+          # Determine if this is a release event or manual workflow dispatch
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            # On release, we only build artifacts, not publish
+            echo "build_python=true" >> $GITHUB_OUTPUT
+            echo "build_rust=true" >> $GITHUB_OUTPUT
+            echo "publish_python=false" >> $GITHUB_OUTPUT
+            echo "publish_rust=false" >> $GITHUB_OUTPUT
+          else
+            # Manual workflow dispatch
+            PACKAGE_TYPE="${{ github.event.inputs.package_type }}"
+            ACTION="${{ github.event.inputs.action }}"
+            
+            # Set build flags
+            if [[ "$PACKAGE_TYPE" == "both" || "$PACKAGE_TYPE" == "python" ]]; then
+              echo "build_python=true" >> $GITHUB_OUTPUT
+            else
+              echo "build_python=false" >> $GITHUB_OUTPUT
+            fi
+            
+            if [[ "$PACKAGE_TYPE" == "both" || "$PACKAGE_TYPE" == "rust" ]]; then
+              echo "build_rust=true" >> $GITHUB_OUTPUT
+            else
+              echo "build_rust=false" >> $GITHUB_OUTPUT
+            fi
+            
+            # Set publish flags
+            if [[ "$ACTION" == "publish" && ("$PACKAGE_TYPE" == "both" || "$PACKAGE_TYPE" == "python") ]]; then
+              echo "publish_python=true" >> $GITHUB_OUTPUT
+            else
+              echo "publish_python=false" >> $GITHUB_OUTPUT
+            fi
+            
+            if [[ "$ACTION" == "publish" && ("$PACKAGE_TYPE" == "both" || "$PACKAGE_TYPE" == "rust") ]]; then
+              echo "publish_rust=true" >> $GITHUB_OUTPUT
+            else
+              echo "publish_rust=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  build_python:
+    needs: determine_action
+    if: ${{ needs.determine_action.outputs.build_python == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9]
+        poetry-version: [1.7.1]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: ${{ matrix.poetry-version }}
+      - name: Build package
+        run: |
+          cd sdks/python
+          poetry build
+      - name: Upload Python package
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: sdks/python/dist/
+          retention-days: 7
+
+  build_rust:
+    needs: determine_action
+    if: ${{ needs.determine_action.outputs.build_rust == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build package
+        uses: actions-rs/cargo@v1
+        with:
+          command: package
+          args: --allow-dirty
+      - name: Upload Rust package
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-package
+          path: target/package/
+          retention-days: 7
+
+  publish_python:
+    needs: [determine_action, build_python]
+    if: ${{ needs.determine_action.outputs.publish_python == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.7.1
+      - name: Download Python package
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package
+          path: dist
+      - name: Publish to PyPI
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          cd sdks/python
+          poetry config pypi-token.pypi $PYPI_API_TOKEN
+          poetry publish --skip-build
+
+  publish_rust:
+    needs: [determine_action, build_rust]
+    if: ${{ needs.determine_action.outputs.publish_rust == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Download Rust package
+        uses: actions/download-artifact@v3
+        with:
+          name: rust-package
+          path: target/package
+      - name: Login to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: login
+          args: ${{ secrets.CRATES_IO_TOKEN }}
+      - name: Publish to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --no-verify

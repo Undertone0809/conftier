@@ -35,10 +35,8 @@ struct LoggingSettings {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize logging
     env_logger::init();
 
-    // Create a configuration manager instance
     let mut config_manager: ConfigManager<AppConfig> = ConfigManager::new(
         "myapp", // Configuration name
         "1.0.0", // Version
@@ -46,14 +44,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         true,    // Auto-create project config
     );
 
-    // Initialize the configuration manager (create default config file)
     config_manager.initialize();
 
-    // Load configuration
     let config = config_manager.load();
     println!("Loaded config: {:?}", config);
 
-    // Update user configuration
     let mut user_updates = HashMap::new();
     user_updates.insert(
         "app".to_string(),
@@ -70,7 +65,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     config_manager.update_user_config(user_updates);
 
-    // Update project configuration
     let mut project_updates = HashMap::new();
     project_updates.insert(
         "database".to_string(),
@@ -87,7 +81,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     config_manager.update_project_config(project_updates);
 
-    // Reload configuration to get updated values
     let updated_config = config_manager.config();
     println!("Updated config: {:?}", updated_config);
 

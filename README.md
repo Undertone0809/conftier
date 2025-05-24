@@ -78,34 +78,97 @@ Add this to your Cargo.toml:
 conftier = ">=0.0.2"
 ```
 
-## Quick Examples
+
+## Quick Start
 
 ### Python Example
+
+1. **Install**
+
+```bash
+pip install conftier[pydantic]  # recommended with pydantic support
+```
+
+2. **Define your configuration model**
 
 ```python
 from pydantic import BaseModel
 from conftier import ConfigManager
 
+# Define your config model
 class AppConfig(BaseModel):
-    app_name: str = "MyApp"
+    app_name: str = "MyApp"  # default value
     debug: bool = False
+    max_connections: int = 10
+```
 
+3. **Create a config manager and use it**
+
+```python
+# Create config manager
 config_manager = ConfigManager(
-    config_name="myapp",
-    config_schema=AppConfig,
-    auto_create=True
+    config_name="myapp",  # config name, will be used for filenames
+    config_schema=AppConfig,  # your config model
+    auto_create=True  # automatically create config files
 )
 
 # Load the merged configuration
-config: AppConfig = config_manager.load()
+config = config_manager.load()
+print(f"App name: {config.app_name}")
+print(f"Debug mode: {config.debug}")
+```
+
+4. **Check your generated config files**
+
+- Global config: `~/.zeeland/myapp/config.yaml`
+- Project config: `./.myapp/config.yaml`
+
+5. **Example YAML file contents**
+
+Global config (`~/.zeeland/myapp/config.yaml`):
+
+```yaml
+# Global settings for all projects
+app_name: MyGlobalApp
+debug: false
+max_connections: 20
+```
+
+Project config (`./.myapp/config.yaml`):
+
+```yaml
+# Project-specific settings
+app_name: MyProjectApp
+debug: true
+# max_connections inherits from global (20)
+```
+
+Final merged config:
+
+```python
+# Priority: Project > Global > Default
+config.app_name  # "MyProjectApp" (from project)
+config.debug  # True (from project)
+config.max_connections  # 20 (from global)
 ```
 
 ### Rust Example
+
+1. **Add dependencies**
+
+```toml
+[dependencies]
+conftier = ">=0.0.2"
+serde = { version = "1.0", features = ["derive"] }
+```
+
+2. **Define your config struct and use it**
 
 ```rust
 use serde::{Serialize, Deserialize};
 use conftier::core::ConfigManager;
 
+// Define your config struct
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct AppConfig {
     app_name: String,
@@ -118,7 +181,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "myapp", "1.0", true, true
     );
     
-    // Load and access configuration
+    // Load configuration
     let config = config_manager.load();
     println!("App name: {}", config.app_name);
     
@@ -126,14 +189,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+3. **Example YAML file contents**
+
+Global config (`~/.zeeland/myapp/config.yaml`):
+
+```yaml
+# Global settings for all projects
+app_name: "RustGlobalApp"
+debug: false
+```
+
+Project config (`./.myapp/config.yaml`):
+
+```yaml
+# Project-specific settings
+app_name: "RustProjectApp"
+debug: true
+```
+
+Final merged config:
+
+```rust
+// Priority: Project > Global > Default
+config.app_name  // "RustProjectApp" (from project)
+config.debug     // true (from project)
+```
+
+## Key Features
+
+- **Type Safety**: No more string/int confusion or missing required fields
+- **Smart Merging**: Only override what's specified, preserving other values
+- **CLI Tools**: Built-in command-line tools for configuration management
+- **Cross-language Compatibility**: Same configuration model in different languages
+
 ## When to Use Conftier
 
-Conftier shines when:
+Conftier is perfect for:
 
-1. **You're building a framework or library**: Give your users a consistent way to configure your tool
-2. **Your app has both user and project settings**: Like VSCode's personal vs. project-specific settings
-3. **You need schema validation**: Ensure configuration values have the correct types and valid ranges
-4. **You want to reduce boilerplate**: Stop writing the same configuration loading code in every project
+1. **Building frameworks or libraries**: Give your users a consistent way to configure your tool
+2. **Apps with both user and project settings**: Like VSCode's personal vs. project-specific settings
+3. **Need for schema validation**: Ensure configuration values have the correct types and valid ranges
+4. **Reducing boilerplate**: Stop writing the same configuration loading code in every project
+
+## Documentation
+
+- [Full Documentation](https://conftier.zeeland.top/)
+- [Quick Start Guide](https://conftier.zeeland.top/guide/quick-start.html)
+- [Contributing Guide](https://conftier.zeeland.top/other/contributing.html)
 
 ## 🛡 License
 
@@ -144,8 +246,7 @@ See [LICENSE](https://github.com/Undertone0809/conftier/blob/main/LICENSE) for m
 
 ## 🤝 Support
 
-For more information, please
-contact: [zeeland4work@gmail.com](mailto:zeeland4work@gmail.com)
+For more information, please contact: [zeeland4work@gmail.com](mailto:zeeland4work@gmail.com)
 
 ## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/P3G-%F0%9F%9A%80-brightgreen)](https://github.com/Undertone0809/python-package-template)
 

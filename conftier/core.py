@@ -16,6 +16,8 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_args,
+    get_origin,
 )
 
 import yaml
@@ -66,7 +68,10 @@ class ConfigModel:
 
     @classmethod
     def from_schema(
-        cls, schema: Type[Any], data: Optional[Dict[str, Any]] = None
+        cls,
+        schema: Type[Any],
+        data: Optional[Dict[str, Any]] = None,
+        strict: bool = False,
     ) -> "ConfigModel":
         """
         Create a ConfigModel from a schema type and data
@@ -102,7 +107,7 @@ class ConfigModel:
             schema_type = SCHEMA_TYPE_DATACLASS
             if data:
                 # Handle nested dataclasses
-                kwargs = cls._prepare_dataclass_kwargs(schema, data)
+                kwargs = cls._prepare_dataclass_kwargs(schema, data, strict=strict)
                 instance = schema(**kwargs)
             else:
                 instance = schema()
@@ -116,45 +121,112 @@ class ConfigModel:
 
     @staticmethod
     def _prepare_dataclass_kwargs(
-        dataclass_type: Type[Any], data: Dict[str, Any]
+        dataclass_type: Type[Any],
+        data: Dict[str, Any],
+        *,
+        strict: bool = False,
+        validate_types: bool = True,
     ) -> Dict[str, Any]:
-        """Prepare kwargs for dataclass initialization with proper handling of nested
-        dataclasses.
-
+        """Improved dataclass kwargs preparation method
         Args:
             dataclass_type: Target dataclass type
-            data: Data dictionary
+            data: Input data dictionary
+            strict: Whether to enable strict mode (forbids extra fields)
+            validate_types: Whether to validate types
 
         Returns:
-            Dictionary of kwargs suitable for initializing the dataclass
+            kwargs dictionary suitable for initializing the dataclass
+
+        Raises:
+            ValueError: Extra fields found in strict mode
+            TypeError: Type validation failed
         """
         if not data:
             return {}
 
+        if strict:
+            field_names = {f.name for f in fields(dataclass_type)}
+            extra_fields = set(data.keys()) - field_names
+            if extra_fields:
+                raise ValueError(f"Unexpected fields: {extra_fields}")
+
         kwargs: Dict[str, Any] = {}
 
-        # Process each field in the dataclass
         for field in fields(dataclass_type):
             field_name = field.name
 
-            # Skip if field not in data
+            # Handle default values
             if field_name not in data:
+                if field.default is not MISSING:
+                    kwargs[field_name] = field.default
+                elif field.default_factory is not MISSING:
+                    kwargs[field_name] = field.default_factory()
+                else:
+                    continue
                 continue
 
             field_value = data[field_name]
             field_type = field.type
 
+            # Type validation
+            if validate_types and not ConfigModel._validate_type(
+                field_type, field_value
+            ):
+                raise TypeError(
+                    f"Field '{field_name}' expects type {field_type}, "
+                    f"got {type(field_value)} with value {field_value}"
+                )
+
             # Handle nested dataclasses
             if isinstance(field_value, dict) and is_dataclass(field_type):
-                # Recursively handle nested dataclass
                 nested_kwargs = ConfigModel._prepare_dataclass_kwargs(
-                    field_type, field_value
+                    field_type,
+                    field_value,
+                    strict=strict,
+                    validate_types=validate_types,
                 )
                 kwargs[field_name] = field_type(**nested_kwargs)
             else:
                 kwargs[field_name] = field_value
 
         return kwargs
+
+    @staticmethod
+    def _validate_type(field_type, value):
+        # Handle Optional type
+        if get_origin(field_type) is Union:
+            args = get_args(field_type)
+            if type(None) in args:  # Is Optional type
+                if value is None:
+                    return True
+                # Check non-None part
+                non_none_types = [t for t in args if t is not type(None)]
+                return any(ConfigModel._validate_type(t, value) for t in non_none_types)
+
+        # Handle container types like List, Dict
+        origin = get_origin(field_type)
+        if origin:
+            if origin is list:
+                return isinstance(value, list) and all(
+                    ConfigModel._validate_type(get_args(field_type)[0], item)
+                    for item in value
+                )
+            elif origin is dict:
+                return isinstance(value, dict) and all(
+                    ConfigModel._validate_type(get_args(field_type)[0], k)
+                    and ConfigModel._validate_type(get_args(field_type)[1], v)
+                    for k, v in value.items()
+                )
+
+        # Basic type checking
+        if inspect.isclass(field_type) and not isinstance(value, field_type):
+            try:
+                # Try type conversion
+                return field_type(value)
+            except (TypeError, ValueError):
+                return False
+
+        return True
 
     @property
     def model(self) -> Any:
@@ -275,6 +347,7 @@ class ConfigManager(Generic[T]):
         version: str = "1.0.0",
         auto_create_user: bool = False,
         auto_create_project: bool = False,
+        strict: bool = False,
     ):
         """
         Initialize the configuration manager
@@ -286,6 +359,7 @@ class ConfigManager(Generic[T]):
             version: Configuration schema version
             auto_create_user: Whether to automatically create user config file if not
             exists auto_create_project: Whether to automatically create project config
+            strict: Turn on strict extra field verification mode
             file if not exists.
         """
         self.config_name: str = config_name
@@ -294,6 +368,7 @@ class ConfigManager(Generic[T]):
         self.auto_create_user: bool = auto_create_user
         self.auto_create_project: bool = auto_create_project
         self.schema_type: SchemaType
+        self.strict: bool = strict
 
         if (
             PYDANTIC_AVAILABLE
@@ -464,7 +539,7 @@ class ConfigManager(Generic[T]):
                 return None, None
 
             config_model: ConfigModel = ConfigModel.from_schema(
-                self.config_schema, config_dict
+                self.config_schema, config_dict, strict=self.strict
             )
             typed_config: T = cast(T, config_model.model)
             return config_model, typed_config

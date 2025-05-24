@@ -30,20 +30,20 @@ sequenceDiagram
   participant Dev as App Developer
   participant Conftier as Conftier Framework
   participant App as Application
-  
+
   Note over Dev: 1. Configuration Definition
   Dev->>Conftier: Define configuration schema<br/>(Pydantic/Dataclass)
   Note right of Dev: AppConfig with API settings,<br/>database configs, feature flags
-  
+
   Note over Dev: 2. Integration Setup
   Dev->>Conftier: Initialize ConfigManager<br/>(name="myapp", schema=AppConfig)
   Conftier-->>Dev: Configuration manager ready
-  
+
   Note over Dev: 3. Configuration Usage
   Dev->>Conftier: Load configuration
   Conftier-->>Dev: Return configuration (from project or defaults)
   Dev->>App: Initialize app with configuration
-  
+
   Note over Dev: 4. Environment Management
   Dev->>Conftier: Set up different project configs<br/>for different environments
   Note right of Dev: Create templates or CI scripts for<br/>dev/staging/production
@@ -84,7 +84,7 @@ class AIModelConfig(BaseModel):
     temperature: float = Field(default=0.7, description="Model temperature")
     api_key: str = Field(default="", description="API key")
     max_tokens: int = Field(default=2000, description="Maximum number of tokens")
-    
+
 class LoggingConfig(BaseModel):
     level: str = Field(default="INFO", description="Logging level")
     file: Optional[str] = Field(default=None, description="Log file path")
@@ -117,7 +117,7 @@ ai_model:
   temperature: 0.7
   api_key: ""
   max_tokens: 2000
-  
+
 logging:
   level: INFO
   file: null
@@ -139,7 +139,8 @@ config_manager = ConfigManager(
     config_name="myapp",
     config_schema=AppConfig,
     version="1.0.0",
-    auto_create_project=True  # Automatically create project config if it doesn't exist
+    auto_create_project=True,  # Automatically create project config if it doesn't exist
+    strict=False,  # Whether to enable strict mode to forbid undefined fields in config files
 )
 ```
 
@@ -147,6 +148,12 @@ When `auto_create_project=True`:
 
 - If the project-level config file doesn't exist at `./.myapp/config.yaml`, it will be created with default values
 - This ensures your application always has a configuration file to work with
+
+When `strict=True`:
+
+- Configuration fields must strictly match the schema definition
+- If the config file contains fields not defined in the schema, a ValueError will be raised
+- This helps ensure configuration file standardization and prevents typos
 
 ### 3. Loading and Using Configuration
 
@@ -163,32 +170,32 @@ from myapp.ai import setup_ai_model
 def create_app():
     # Load the configuration (or use config_manager.config)
     config = config_manager.load()
-    
+
     # Set up logging first
     setup_logging(config.logging)
-    
+
     # Create the FastAPI app with configuration
     app = FastAPI(
         title="MyApp",
         description="FastAPI Application with AI Features",
         debug=config.server.debug
     )
-    
+
     # Set up database
     db = setup_database(config.database)
-    
+
     # Set up AI model client
     ai_client = setup_ai_model(config.ai_model)
-    
+
     # Attach configuration and components to app for use in route handlers
     app.state.config = config
     app.state.db = db
     app.state.ai_client = ai_client
-    
+
     # Enable features based on configuration
     for feature in config.enable_features:
         enable_feature(app, feature)
-    
+
     return app
 
 # In main.py (app entrypoint)
@@ -202,7 +209,7 @@ if __name__ == "__main__":
     # Get configuration for the server
     config = config_manager.load()
     server_config = config.server
-    
+
     # Run the server with the configured settings
     uvicorn.run(
         "main:app",
@@ -224,7 +231,6 @@ server:
 database:
   url: sqlite:///./dev.db
   echo: true
-
 # Production environment example (./.myapp/config.yaml)
 # server:
 #   host: 0.0.0.0
@@ -272,17 +278,17 @@ config_manager = ConfigManager(
 def load_config_with_env():
     """Load configuration with environment variable overrides."""
     config = config_manager.load()
-    
+
     # Override with environment variables if they exist
     if os.environ.get("MYAPP_AI_API_KEY"):
         config.ai_model.api_key = os.environ.get("MYAPP_AI_API_KEY")
-        
+
     if os.environ.get("MYAPP_DB_URL"):
         config.database.url = os.environ.get("MYAPP_DB_URL")
-        
+
     if os.environ.get("MYAPP_LOG_LEVEL"):
         config.logging.level = os.environ.get("MYAPP_LOG_LEVEL")
-    
+
     return config
 ```
 
@@ -347,18 +353,22 @@ myapp config set --key server.port --value 5000
 ## Best Practices for Application Configuration
 
 1. **Keep secrets out of configuration files**
+
    - Use environment variables for sensitive values like API keys and credentials
    - Provide placeholders in configuration templates
 
 2. **Version control considerations**
+
    - Add `./.myapp/config.yaml` to your `.gitignore` file
    - Include a `config.example.yaml` file in version control as a template
 
 3. **Documentation**
+
    - Document all configuration options
    - Provide example configurations for different environments
 
 4. **Validation**
+
    - Use Pydantic's validation capabilities to catch configuration errors early
    - Add custom validation hooks for complex rules
 

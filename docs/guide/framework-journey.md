@@ -26,30 +26,30 @@ sequenceDiagram
   participant FD as Framework Developer
   participant Conftier as Conftier Framework
   participant App as Application
-  
+
   Note over FD: 1. Configuration Definition
   FD->>Conftier: Define configuration schema<br/>(Pydantic/Dataclass)
   Note right of FD: SmartAssistConfig with<br/>LLM, Conversation, Logging sections
-  
+
   Note over FD: 2. Integration Setup
   FD->>Conftier: Initialize ConfigManager<br/>(name="smartassist", schema=SmartAssistConfig)
   Conftier-->>FD: Configuration manager ready
-  
+
   Note over FD: 3. Configuration Access
   FD->>Conftier: Load configuration
   Conftier-->>FD: Return merged configuration<br/>(project > user > default)
   FD->>App: Initialize app with configuration
   Note right of FD: Access as config.llm_config.model_name
-  
+
   Note over FD: 4. Configuration Management
   FD->>Conftier: Update user/project config
   Conftier-->>FD: Configuration updated
-  
+
   Note over FD: 5. CLI Integration
   FD->>Conftier: Register CLI commands
   Conftier-->>FD: CLI commands registered
   Note right of FD: smartassist config show<br/>smartassist config set<br/>smartassist config init-project
-  
+
   Note over FD: 6. Distribution
   FD->>FD: Package and distribute framework
   Note right of FD: Users can now manage configs<br/>without framework code changes
@@ -170,6 +170,7 @@ config_manager: SmartAssistConfig = ConfigManager(
     config_schema=SmartAssistConfig,
     version="1.0.0",
     auto_create_user=True,  # Automatically create config files if they don't exist
+    strict=False,  # Whether to enable strict mode to forbid undefined fields in config files
 )
 ```
 
@@ -177,6 +178,12 @@ When `auto_create_user=True`:
 
 - If the user-level config file doesn't exist at `~/.zeeland/smartassist/config.yaml`, it will be created with default values
 - No project-level config is automatically created unless explicitly requested
+
+When `strict=True`:
+
+- Configuration fields must strictly match the schema definition
+- If the config file contains fields not defined in the schema, a ValueError will be raised
+- This helps ensure configuration file standardization and prevents typos
 
 ### 3. Loading and Using Configuration
 
@@ -192,35 +199,36 @@ def initialize_framework():
     # Load the merged configuration (combines project, user, and default configs)
     # or you can use conf_manager.config to get config
     config = config_manager.load()
-    
+
     # Access configuration values with full IDE autocompletion
     model_name = config.llm_config.model_name
     api_key = config.llm_config.api_key
     log_level = config.logging_config.log_level
-    
+
     print(f"Initializing SmartAssist with model: {model_name}")
     print(f"Log level: {log_level}")
-    
+
     # Set up your framework components using the configuration
     setup_logging(config.logging_config)
     llm_client = LLMClient(config.llm_config)
-    
+
     # Initialize conversation handler with configuration
     conversation_handler = ConversationHandler(
         config.conversation_config,
         llm_client
     )
-    
+
     # Enable features based on configuration
     for feature in config.enable_features:
         enable_feature(feature)
-    
+
     return SmartAssistCore(llm_client, conversation_handler, config)
 ```
 
 When the framework loads configuration:
 
 1. Conftier looks for configuration files in this order:
+
    - Project-level config: `./.smartassist/config.yaml` (in the current working directory)
    - User-level config: `~/.zeeland/smartassist/config.yaml`
    - Default values from your schema
@@ -281,13 +289,13 @@ def check_api_configuration():
         print(f"Project is using model: {project_config.llm_config.model_name}")
     else:
         print("No project-specific model configuration found")
-        
+
     if user_config and hasattr(user_config, 'llm_config'):
         has_api_key = bool(user_config.llm_config.api_key)
         print(f"User has configured API key: {'Yes' if has_api_key else 'No'}")
     else:
         print("No user API configuration found")
-        
+
     # Warn if no API key is set
     config = config_manager.load()
     if not config.llm_config.api_key:
@@ -414,23 +422,23 @@ sequenceDiagram
   participant CLI as SmartAssist CLI
   participant App as SmartAssist App
   participant Files as Config Files
-  
+
   Note over User: 1. Initial Setup
   User->>CLI: smartassist setup --api-key=sk-your-api-key
   CLI->>Files: Save API key to user config<br/>~/.zeeland/smartassist/config.yaml
   CLI-->>User: API key saved successfully
-  
+
   Note over User: 2. Project Configuration
   User->>CLI: smartassist config init-project
   CLI->>Files: Create project config template<br/>./.smartassist/config.yaml
   CLI-->>User: Project config created
-  
+
   User->>CLI: smartassist config show
   CLI->>Files: Read all config files
   CLI-->>User: Display merged configuration<br/>and source of each value
-  
+
   Note over User: 3. Configuration Updates
-  
+
   alt Using CLI
       User->>CLI: smartassist config set --key llm_config.model_name<br/>--value "gpt-3.5-turbo" --project
       CLI->>Files: Update project config file
@@ -439,18 +447,19 @@ sequenceDiagram
       User->>Files: Edit ~/.zeeland/smartassist/config.yaml<br/>(User preferences)
       User->>Files: Edit ./.smartassist/config.yaml<br/>(Project settings)
   end
-  
+
   Note over User: 4. Using the Application
   User->>App: Run application
   App->>Files: Load and merge all configurations<br/>(project > user > default)
   App-->>User: Application runs with<br/>personalized settings
-  
+
   Note over User: 5. Sharing with Team
   User->>User: Commit project config to version control
   Note right of User: Team members get project settings<br/>but keep their own API keys
 ```
 
 1. **User-level config** (applies to all your projects):
+
    - Location: `~/.zeeland/smartassist/config.yaml`
    - Purpose: Store your personal preferences, like API keys, that apply across all projects
 
@@ -502,8 +511,8 @@ Project-level configuration:
 ```yaml
 # ./.smartassist/config.yaml
 llm_config:
-  model_name: "gpt-3.5-turbo"  # Overrides user configuration
-  temperature: 0.5             # Overrides user configuration
+  model_name: "gpt-3.5-turbo" # Overrides user configuration
+  temperature: 0.5 # Overrides user configuration
 
 conversation_config:
   system_prompt: "You are a specialized coding assistant for this project."

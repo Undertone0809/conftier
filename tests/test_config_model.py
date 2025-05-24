@@ -59,6 +59,24 @@ class TestConfigModel:
         assert config_model.model.number == 100
         assert config_model.model.nested.name == "nested"
 
+        # Test type checking
+        with pytest.raises(
+            TypeError,
+            match="Field 'number' expects type <class 'int'>, got <class 'str'>",
+        ):
+            ConfigModel.from_schema(
+                DataclassConfig,
+                {"number": "not_an_int"},  # Wrong type
+            )
+        # Test with nested type checking
+        with pytest.raises(
+            TypeError,
+            match="Field 'value' expects type <class 'int'>, got <class 'str'>",
+        ):
+            ConfigModel.from_schema(
+                DataclassConfig,
+                {"nested": {"value": "not_an_int"}},  # Wrong type for nested field
+            )
         # Create with custom values
         custom_data = {
             "title": "custom",
@@ -66,13 +84,31 @@ class TestConfigModel:
             "number": 200,
             "nested": {"name": "custom_nested", "value": 99},
         }
-
         config_model = ConfigModel.from_schema(DataclassConfig, custom_data)
         assert config_model.model.title == "custom"
         assert config_model.model.enabled is False
         assert config_model.model.number == 200
         assert config_model.model.nested.name == "custom_nested"
         assert config_model.model.nested.value == 99
+        # Test with extra fields (should be ignored by default)
+        extra_data = {
+            **custom_data,
+            "extra_field": "should_be_ignored",
+            "nested": {
+                **custom_data["nested"],
+                "extra_nested_field": "should_be_ignored",
+            },
+        }
+        config_model = ConfigModel.from_schema(DataclassConfig, extra_data)
+        assert not hasattr(config_model.model, "extra_field")
+        assert not hasattr(config_model.model.nested, "extra_nested_field")
+        # Test strict mode (should raise error on extra fields)
+        with pytest.raises(ValueError, match="Unexpected fields: {'extra_field'}"):
+            ConfigModel.from_schema(
+                DataclassConfig,
+                extra_data,
+                strict=True,  # Enable strict mode
+            )
 
     def test_conftier_from_schema_dict(self):
         """Test creating ConfigModel from a dict schema"""

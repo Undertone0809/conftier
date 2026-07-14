@@ -17,10 +17,5 @@
   },
   "dependencies": {
     "@types/node": "^22.9.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }

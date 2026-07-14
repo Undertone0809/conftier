@@ -41,16 +41,16 @@ jobs:
         working-directory: docs
         run: |
           set +e
-          pnpm update --latest --no-frozen-lockfile --reporter=append-only > pnpm-update.log 2>&1
+          pnpm update --latest --no-frozen-lockfile --reporter=append-only > ../.github/pnpm-update.txt 2>&1
           status=$?
-          cat pnpm-update.log
+          cat ../.github/pnpm-update.txt
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Save pnpm failure log
+      - name: Save pnpm failure output
         if: steps.docs-update.outputs.status != '0'
         run: |
-          git add docs/pnpm-update.log
+          git add .github/pnpm-update.txt
           git commit -m "chore: capture pnpm update failure"
           git push
           exit 1
@@ -59,7 +59,7 @@ jobs:
         if: steps.docs-update.outputs.status == '0'
         working-directory: docs
         run: |
-          rm -f pnpm-update.log
+          rm -f ../.github/pnpm-update.txt
           pnpm install --frozen-lockfile
           pnpm run docs:build
 

@@ -68,7 +68,7 @@ jobs:
 
       - name: Refresh documentation dependencies
         working-directory: docs
-        run: pnpm update --latest
+        run: pnpm update --latest --no-frozen-lockfile
 
       - name: Validate documentation build
         working-directory: docs

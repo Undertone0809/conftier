@@ -41,7 +41,7 @@ jobs:
         working-directory: docs
         run: |
           set +e
-          pnpm update --latest --no-frozen-lockfile --reporter=append-only > ../.github/pnpm-update.txt 2>&1
+          CI=false pnpm update --latest --reporter=append-only > ../.github/pnpm-update.txt 2>&1
           status=$?
           cat ../.github/pnpm-update.txt
           echo "status=$status" >> "$GITHUB_OUTPUT"
@@ -110,6 +110,7 @@ jobs:
         if: steps.docs-update.outputs.status == '0'
         run: |
           git add Cargo.lock sdks/python/poetry.lock docs/package.json docs/pnpm-lock.yaml
+          git add -A .github/pnpm-update.txt
           git diff --cached --check
           if git diff --cached --quiet; then
             echo "Dependency files are already current."

@@ -1,42 +1,57 @@
 name: Python Package Test
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macOS-10.15, windows-2019]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install poetry
-        run: pip install poetry
-
-      - name: Set up cache
-        uses: actions/cache@v4.2.2
-        with:
-          path: .venv
-          key: venv-${{ matrix.python-version }}-${{ hashFiles('sdks/python/pyproject.toml') }}-${{ hashFiles('sdks/python/poetry.lock') }}
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          cd sdks/python
+          python -m pip install --upgrade pip
+          pip install "poetry==2.2.1"
+
+      - name: Cache virtual environment
+        uses: actions/cache@v6
+        with:
+          path: sdks/python/.venv
+          key: venv-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('sdks/python/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        working-directory: sdks/python
+        run: |
           poetry config virtualenvs.in-project true
-          poetry install
+          poetry install --no-interaction
 
       - name: Run style checks
+        working-directory: sdks/python
         run: |
-          cd sdks/python
-          make check-codestyle
+          poetry run ruff format --check --config pyproject.toml .
+          poetry run ruff check --config pyproject.toml .
 
       - name: Run tests
-        run: |
-          cd sdks/python
-          make test
+        working-directory: sdks/python
+        run: poetry run pytest -c pyproject.toml --cov-report=term-missing --cov=conftier tests/

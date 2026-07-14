@@ -52,7 +52,7 @@ jobs:
         run: |
           git add .github/pnpm-update.txt
           git commit -m "chore: capture pnpm update failure"
-          git push
+          git push origin HEAD:"${{ github.head_ref }}"
           exit 1
 
       - name: Validate documentation build
@@ -109,12 +109,11 @@ jobs:
       - name: Commit refreshed dependencies
         if: steps.docs-update.outputs.status == '0'
         run: |
-          git add Cargo.lock sdks/python/poetry.lock docs/package.json docs/pnpm-lock.yaml
-          git add -A .github/pnpm-update.txt
-          git diff --cached --check
+          git add -A -- Cargo.lock sdks/python/poetry.lock docs/package.json docs/pnpm-lock.yaml docs/pnpm-workspace.yaml .github/pnpm-update.txt
           if git diff --cached --quiet; then
             echo "Dependency files are already current."
             exit 0
           fi
+          git status --short
           git commit -m "chore: refresh dependency lockfiles"
-          git push
+          git push origin HEAD:"${{ github.head_ref }}"

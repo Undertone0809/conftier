@@ -1,14 +1,15 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
 [WARN] Ignoring broken lockfile at /home/runner/work/conftier/conftier/docs: Lockfile /home/runner/work/conftier/conftier/docs/pnpm-lock.yaml not compatible with current pnpm
 Progress: resolved 1, reused 0, downloaded 0, added 0
 [WARN] "@vite-pwa/vitepress@>=0.5.3 <0.6.0-0" was updated to 1.1.0, not 0.5.4, to match the version preferred by your manifests and already installed dependencies. To use 0.5.4, add an override to pnpm-workspace.yaml: overrides: { "@vite-pwa/vitepress@>=0.5.3 <0.6.0-0": "0.5.4" }
 [WARN] "@types/node@>=22.9.0 <23.0.0-0" was updated to 26.1.1, not 22.20.1, to match the version preferred by your manifests and already installed dependencies. To use 22.20.1, add an override to pnpm-workspace.yaml: overrides: { "@types/node@>=22.9.0 <23.0.0-0": "22.20.1" }
-Progress: resolved 50, reused 0, downloaded 39, added 0
-Progress: resolved 242, reused 0, downloaded 194, added 0
-Progress: resolved 455, reused 0, downloaded 385, added 0
+Progress: resolved 48, reused 0, downloaded 40, added 0
+Progress: resolved 195, reused 0, downloaded 160, added 0
+Progress: resolved 370, reused 0, downloaded 294, added 0
+Progress: resolved 600, reused 0, downloaded 542, added 0
 [WARN] 2 deprecated subdependencies found: glob@11.1.0, source-map@0.8.0-beta.0
 Packages: +562
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Progress: resolved 609, reused 0, downloaded 562, added 110
 Progress: resolved 609, reused 0, downloaded 562, added 562, done
 
 dependencies:

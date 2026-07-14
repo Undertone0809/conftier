@@ -1,0 +1,3 @@
+[ERROR] Unknown option: 'frozen-lockfile'
+Did you mean 'lockfile'? Use "--config.unknown=value" to force an unknown option.
+For help, run: pnpm help update

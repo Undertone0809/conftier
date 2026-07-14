@@ -1,19 +1,26 @@
 name: Refresh dependency locks
 
 on:
-  push:
-    branches: [chore/update-dependencies-2026-07]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
+
+concurrency:
+  group: refresh-dependency-locks
+  cancel-in-progress: true
 
 jobs:
   refresh:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out pull request branch
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v6

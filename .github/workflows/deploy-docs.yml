@@ -22,18 +22,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 11
-          run_install: false
-
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: docs/pnpm-lock.yaml
+
+      - name: Install pnpm
+        run: npm install --global pnpm@11
 
       - name: Set up Pages
         uses: actions/configure-pages@v6
